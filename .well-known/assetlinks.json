@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "app.vercel.kiddoplan.twa",
-        "sha256_cert_fingerprints": ["93:B7:FE:42:E3:1E:3E:4B:9D:24:C8:D7:FA:4D:45:DB:67:56:98:C3:03:3B:14:D7:E0:15:D7:38:FC:2C:C2:62"]
+        "sha256_cert_fingerprints": ["0B:89:98:72:C1:34:DF:07:95:D2:2C:0F:58:D2:6E:71:7E:80:05:29:FD:58:F6:F1:DC:13:94:94:3B:5E:0A:0F"]
       }
     }]
