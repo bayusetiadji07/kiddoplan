@@ -1276,8 +1276,14 @@ function renderReminderToggle(){ const b=document.getElementById('rmd-toggle'); 
 function toggleReminder(btn){
   reminderOn=!reminderOn; btn.classList.toggle('on',reminderOn);
   if(reminderOn){
-    try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
     startReminderLoop();
+    if('Notification' in window && Notification.permission==='default'){
+      Notification.requestPermission().then(function(){ scheduleNotifications(); });
+    } else {
+      scheduleNotifications();
+    }
+  } else {
+    clearScheduledNotifications();
   }
   saveState();
 }
@@ -1286,8 +1292,40 @@ function startReminderLoop(){
   reminderLoop=setInterval(checkReminders, 30000); // cek tiap 30 detik
   checkReminders();
 }
+function triggersSupported(){ return typeof window.TimestampTrigger!=='undefined'; }
+/* Jadwalkan notifikasi via service worker (berfungsi walau app tertutup, di HP yang mendukung) */
+async function scheduleNotifications(){
+  if(!reminderOn || !triggersSupported() || !('serviceWorker' in navigator)) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  let reg; try{ reg=await navigator.serviceWorker.ready; }catch(e){ return; }
+  try{
+    const pending=await reg.getNotifications({includeTriggered:true});
+    pending.forEach(n=>{ if(n.tag && n.tag.indexOf('kiddo-rem-')===0) n.close(); });
+  }catch(e){}
+  const t=customTasks||tasks; const now=Date.now();
+  t.forEach(tk=>{
+    if(tk.done) return;
+    const start=(tk.time||'').split(' - ')[0]; if(!start) return;
+    const a=start.split('.'); const d=new Date(); d.setHours(parseInt(a[0]),parseInt(a[1])||0,0,0);
+    if(d.getTime()<=now+5000) return; // sudah lewat hari ini
+    try{
+      reg.showNotification('⏰ Waktunya '+tk.name+'!', {
+        tag:'kiddo-rem-'+tk.id, body:'Yuk kerjakan dan dapat +'+tk.pts+'⭐',
+        icon:'icon-192.png', badge:'icon-192.png',
+        showTrigger:new TimestampTrigger(d.getTime())
+      });
+    }catch(e){}
+  });
+}
+async function clearScheduledNotifications(){
+  if(!('serviceWorker' in navigator)) return;
+  try{ const reg=await navigator.serviceWorker.ready; const ns=await reg.getNotifications({includeTriggered:true});
+    ns.forEach(n=>{ if(n.tag && n.tag.indexOf('kiddo-rem-')===0) n.close(); }); }catch(e){}
+}
 function checkReminders(){
   if(!reminderOn) return;
+  // jika notifikasi terjadwal didukung & diizinkan, biar SW yang menangani (hindari dobel)
+  if(triggersSupported() && ('Notification' in window) && Notification.permission==='granted') return;
   const now=new Date(), hh=now.getHours(), mm=now.getMinutes(), key=todayKey();
   (customTasks||tasks).forEach(tk=>{
     if(tk.done) return;
@@ -1597,6 +1635,7 @@ function saveState(){
   if(fbDb && currentUser){
     fbDb.collection('users').doc(currentUser.uid).set(state).catch(function(){});
   }
+  if(typeof scheduleNotifications==='function') scheduleNotifications();
 }
 function loadLocalCache(){
   try{ const raw=localStorage.getItem(cacheKey()); if(!raw) return false; return applyState(JSON.parse(raw)); }catch(e){ return false; }
@@ -1623,7 +1662,7 @@ function bootWithState(loaded, skipSave){
     dailyRollover(); syncBadges();
     showAppScreen();
     renderAll(); renderNotes();
-    if(reminderOn) startReminderLoop();
+    if(reminderOn){ startReminderLoop(); scheduleNotifications(); }
     if(!skipSave) saveState();
     if(lastPenalty>0){ showPenaltyPopup(lastPenalty); lastPenalty=0; saveState(); }
   } else {
