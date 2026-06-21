@@ -483,6 +483,58 @@ const interestTaskMap = {
   alam:[{name:'Berkebun & Alam',icon:'🌿',bg:'#EFFFFA',pts:10,ws:false}],
 };
 
+/* Worksheet khusus per topik kegiatan — pertanyaan yang mendidik & spesifik.
+   type 'text' = isian, type 'choice' = pilihan. */
+const worksheets = {
+  buku:{ title:'Jurnal Membaca', intro:'Ceritakan bacaanmu hari ini!', questions:[
+    {type:'text', q:'Judul buku atau cerita yang kamu baca?'},
+    {type:'text', q:'Coba ceritakan kembali isinya dengan kata-katamu sendiri.', ph:'Apa yang terjadi di cerita itu?'},
+    {type:'text', q:'Satu kata baru yang kamu temukan, dan menurutmu apa artinya?'},
+    {type:'choice', q:'Menurutmu ceritanya...', opts:['Seru sekali! 🤩','Lumayan menarik 🙂','Agak sulit dipahami 🤔']},
+  ]},
+  seni:{ title:'Galeri Seni', intro:'Tunjukkan karyamu lewat kata-kata!', questions:[
+    {type:'text', q:'Apa yang kamu gambar atau buat hari ini?'},
+    {type:'text', q:'Dari mana kamu mendapat idenya?'},
+    {type:'text', q:'Warna atau bahan apa saja yang kamu pakai?'},
+    {type:'choice', q:'Bagian tersulit saat berkarya tadi?', opts:['Menentukan ide 💡','Mewarnai/merapikan 🖍️','Tidak ada, lancar! 😎']},
+  ]},
+  musik:{ title:'Catatan Musik', intro:'Bagaimana latihan musikmu?', questions:[
+    {type:'text', q:'Lagu atau alat musik apa yang kamu latih?'},
+    {type:'choice', q:'Berapa lama kamu berlatih?', opts:['Kurang dari 15 menit','15–30 menit','Lebih dari 30 menit 💪']},
+    {type:'text', q:'Bagian mana yang masih terasa sulit?'},
+    {type:'text', q:'Apa yang ingin kamu kuasai pada latihan berikutnya?'},
+  ]},
+  masak:{ title:'Buku Resep Cilik', intro:'Ceritakan kreasimu di dapur!', questions:[
+    {type:'text', q:'Apa yang kamu masak atau buat hari ini?'},
+    {type:'text', q:'Bahan-bahan apa saja yang dipakai?'},
+    {type:'choice', q:'Soal keamanan dapur: apakah kamu cuci tangan & hati-hati dengan benda tajam/panas?', opts:['Selalu, dengan bantuan dewasa ✅','Kadang-kadang','Belum, lain kali ya 🙏']},
+    {type:'text', q:'Bagaimana rasanya? Apa yang ingin kamu perbaiki lain kali?'},
+  ]},
+  sains:{ title:'Lembar Eksperimen', intro:'Jadilah ilmuwan cilik hari ini!', questions:[
+    {type:'text', q:'Eksperimen atau pengamatan apa yang kamu lakukan?'},
+    {type:'text', q:'Sebelum mulai, apa dugaanmu (hipotesis)?', ph:'Aku menduga akan terjadi...'},
+    {type:'text', q:'Apa yang sebenarnya terjadi?'},
+    {type:'text', q:'Menurutmu, mengapa hal itu bisa terjadi?'},
+  ]},
+  coding:{ title:'Log Coding', intro:'Apa yang kamu bangun hari ini?', questions:[
+    {type:'text', q:'Apa yang kamu buat atau pelajari? (game, animasi, web, dll.)'},
+    {type:'choice', q:'Konsep apa yang paling kamu pakai hari ini?', opts:['Perulangan (loop) 🔁','Kondisi (if/else) 🔀','Variabel 📦','Hal lain']},
+    {type:'text', q:'Apakah ada error atau bug? Bagaimana kamu memperbaikinya?'},
+    {type:'text', q:'Fitur apa yang ingin kamu tambahkan berikutnya?'},
+  ]},
+  belajar:{ title:'Jurnal Belajar', intro:'Apa yang kamu pelajari hari ini?', questions:[
+    {type:'text', q:'Mata pelajaran atau topik apa yang kamu pelajari?'},
+    {type:'text', q:'Tuliskan satu hal penting yang kamu pahami hari ini.'},
+    {type:'choice', q:'Seberapa paham kamu dengan materinya?', opts:['Sudah paham! 😄','Perlu latihan lagi 💪','Masih bingung 🤔']},
+    {type:'text', q:'Satu pertanyaan yang ingin kamu tanyakan ke guru/orang tua?'},
+  ]},
+  _default:{ title:'Refleksi Kegiatan', intro:'Ceritakan kegiatanmu!', questions:[
+    {type:'text', q:'Apa yang kamu pelajari atau lakukan hari ini?'},
+    {type:'choice', q:'Bagian paling seru dari kegiatan ini:', opts:['Sangat menyenangkan! 😄','Lumayan seru 🙂','Perlu belajar lagi 💪']},
+    {type:'text', q:'Apa yang ingin kamu coba besok?'},
+  ]},
+};
+
 /* Kegiatan dasar. worship:true → punya nama/ikon alternatif ibadah
    yang dipakai bila profil mengaktifkan "Sertakan kegiatan ibadah". */
 const baseTasksByAge = {
@@ -494,17 +546,17 @@ const baseTasksByAge = {
   '8-10':[
     {name:'Bangun Pagi',worshipName:'Bangun & Sholat Subuh',icon:'🌅',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
     {name:'Sarapan & Siap Hari',icon:'🍳',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Belajar Mandiri',icon:'📝',bg:'#EFFFFA',pts:15,ws:true,time:'09.00'},
+    {name:'Belajar Mandiri',icon:'📝',bg:'#EFFFFA',pts:15,ws:true,topic:'belajar',time:'09.00'},
   ],
   '11-13':[
     {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga Pagi',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
     {name:'Sarapan Bergizi',icon:'🥗',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Belajar Intensif',icon:'📖',bg:'#EFFFFA',pts:20,ws:true,time:'08.00'},
+    {name:'Belajar Intensif',icon:'📖',bg:'#EFFFFA',pts:20,ws:true,topic:'belajar',time:'08.00'},
   ],
   '14+':[
     {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'04.45'},
     {name:'Sarapan & Perencanaan',icon:'📋',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Studi Mandiri',icon:'🎓',bg:'#EFFFFA',pts:25,ws:true,time:'08.00'},
+    {name:'Studi Mandiri',icon:'🎓',bg:'#EFFFFA',pts:25,ws:true,topic:'belajar',time:'08.00'},
   ]
 };
 
@@ -610,13 +662,13 @@ function generateTasks(){
   const base=(baseTasksByAge[age]||baseTasksByAge['8-10']).map((t,i)=>({
     name:(t.worship&&worship&&t.worshipName)?t.worshipName:t.name,
     icon:(t.worship&&worship&&t.worshipIcon)?t.worshipIcon:t.icon,
-    bg:t.bg,pts:t.pts,ws:t.ws,id:i+1,done:false,
+    bg:t.bg,pts:t.pts,ws:t.ws,topic:t.topic,id:i+1,done:false,
     time:t.time+' - '+(String(parseInt(t.time)+1).padStart(2,'0'))+'.00'
   }));
   let intTasks=[];
   profile.interests.forEach((key,i)=>{
     if(interestTaskMap[key]){
-      intTasks.push({...interestTaskMap[key][0],id:base.length+i+1,done:false,
+      intTasks.push({...interestTaskMap[key][0],topic:key,id:base.length+i+1,done:false,
         time:(String(10+i)).padStart(2,'0')+'.00 - '+(String(11+i)).padStart(2,'0')+'.00'});
     }
   });
@@ -747,21 +799,24 @@ function handleTask(id){
 }
 
 function showWS(task){
+  const ws = worksheets[task.topic] || worksheets._default;
   const app=document.getElementById('main-app');
   const ol=document.createElement('div');
   ol.className='overlay'; ol.id='ws-ol';
+  const qHtml = ws.questions.map((q,i)=>{
+    if(q.type==='choice'){
+      const opts=q.opts.map((o,j)=>`
+        <div class="ws-opt"><input type="radio" name="wq${i}" id="wq${i}_${j}"><label for="wq${i}_${j}">${o}</label></div>`).join('');
+      return `<div class="ws-q"><p>${i+1}. ${q.q}</p><div>${opts}</div></div>`;
+    }
+    return `<div class="ws-q"><p>${i+1}. ${q.q}</p>
+      <textarea class="ws-inp" rows="2" placeholder="${q.ph||'Tuliskan jawabanmu...'}"></textarea></div>`;
+  }).join('');
   ol.innerHTML=`<div class="ws-panel">
-    <div class="ws-hd"><h3>${task.icon} ${task.name}</h3><button class="ws-close" onclick="closeWS()">✕</button></div>
+    <div class="ws-hd"><h3>${task.icon} ${ws.title}</h3><button class="ws-close" onclick="closeWS()">✕</button></div>
     <div style="background:#F0EEFF;border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12px;font-weight:700;color:var(--purple)">
-      Selesaikan worksheet ini untuk mendapat +${task.pts}⭐!</div>
-    <div class="ws-q"><p>1. Apa yang kamu pelajari/lakukan hari ini?</p>
-      <textarea class="ws-inp" rows="2" placeholder="Ceritakan kegiatanmu..."></textarea></div>
-    <div class="ws-q"><p>2. Bagian paling seru dari kegiatan ini:</p>
-      <div><div class="ws-opt"><input type="radio" name="q2" id="q2a"><label for="q2a">Sangat menyenangkan! 😄</label></div>
-      <div class="ws-opt"><input type="radio" name="q2" id="q2b"><label for="q2b">Lumayan seru 🙂</label></div>
-      <div class="ws-opt"><input type="radio" name="q2" id="q2c"><label for="q2c">Perlu belajar lagi 💪</label></div></div></div>
-    <div class="ws-q"><p>3. Apa yang ingin kamu coba besok?</p>
-      <textarea class="ws-inp" rows="2" placeholder="Tuliskan idemu..."></textarea></div>
+      ${ws.intro} Selesaikan untuk +${task.pts}⭐!</div>
+    ${qHtml}
     <button class="ws-submit" onclick="submitWS(${task.id})">✅ Selesai! Kumpulkan (+${task.pts}⭐)</button>
   </div>`;
   app.appendChild(ol);
