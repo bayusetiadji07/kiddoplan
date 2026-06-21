@@ -715,6 +715,18 @@ const badgeDefs = [
   {id:'streak7',e:'🏆', n:'Seminggu Penuh',   cond:s=>s.streak>=7},
   {id:'perfect',e:'💯', n:'Hari Sempurna',    cond:s=>s.perfectDay},
   {id:'allint', e:'🎨', n:'Serba Bisa',       cond:s=>s.interests>=4},
+  {id:'fifty',  e:'⛰️', n:'50 Kegiatan',      cond:s=>s.lifetimeDone>=50},
+  {id:'hundred',e:'🎓', n:'100 Kegiatan',     cond:s=>s.lifetimeDone>=100},
+  {id:'stars200',e:'🌈',n:'200 Bintang',      cond:s=>s.totalStars>=200},
+  {id:'stars500',e:'💰',n:'500 Bintang',      cond:s=>s.totalStars>=500},
+  {id:'streak14',e:'📅',n:'2 Minggu Beruntun',cond:s=>s.streak>=14},
+  {id:'streak30',e:'🚀',n:'Sebulan Beruntun', cond:s=>s.streak>=30},
+  {id:'perfect5',e:'✨', n:'5 Hari Sempurna',  cond:s=>s.perfectDays>=5},
+  {id:'perfect15',e:'💎',n:'15 Hari Sempurna', cond:s=>s.perfectDays>=15},
+  {id:'active30',e:'📆', n:'30 Hari Aktif',    cond:s=>s.activeDays>=30},
+  {id:'reflector',e:'📔',n:'Rajin Jurnal',     cond:s=>s.reflectionsCount>=10},
+  {id:'shopper', e:'🎁', n:'Penukar Hadiah',   cond:s=>s.redeemed>=1},
+  {id:'explorer',e:'🧭', n:'Penjelajah Minat', cond:s=>s.interests>=6},
 ];
 
 function obNext(step){
@@ -1581,10 +1593,15 @@ function consistency(){
 function getStats(){
   const t=customTasks||tasks;
   const doneToday=t.filter(x=>x.done).length;
+  const hv=Object.values(history||{});
   return {
     lifetimeDone, totalStars,
     streak:computeStreak(),
     perfectDay: t.length>0 && doneToday===t.length,
+    perfectDays: hv.filter(r=>r&&r.total>0&&r.done===r.total).length,
+    activeDays: hv.filter(r=>r&&r.done>0).length,
+    reflectionsCount: (reflections||[]).length,
+    redeemed: (redemptions||[]).length,
     interests: (profile.interests||[]).length
   };
 }
