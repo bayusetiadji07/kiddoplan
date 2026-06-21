@@ -196,9 +196,30 @@
 .child-profile-pill .av{font-size:22px}
 .child-profile-pill .inf{font-size:12px;font-weight:700;color:var(--dark)}
 .child-profile-pill .sub{font-size:10px;color:var(--muted);font-weight:600}
+
+/* SPLASH / ANIMASI MASUK */
+#splash{position:fixed;inset:0;z-index:1000;background:linear-gradient(150deg,#5B8DEF,#7B5EA7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:opacity .5s ease}
+#splash.hide{opacity:0;pointer-events:none}
+#splash .s-star{font-size:84px;animation:splashpop .7s cubic-bezier(.2,1.4,.4,1) both}
+#splash .s-name{color:#fff;font-size:30px;font-weight:900;animation:splashfade .6s .35s both}
+#splash .s-tag{color:rgba(255,255,255,.85);font-size:13px;font-weight:700;animation:splashfade .6s .55s both}
+@keyframes splashpop{0%{transform:scale(.2) rotate(-25deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes splashfade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen.active{animation:scrIn .35s ease both}
+@keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* TOAST pengingat */
+#app-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;font-size:13px;font-weight:700;padding:10px 16px;border-radius:12px;z-index:400;opacity:0;transition:all .3s;max-width:90%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#app-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 
 <div id="app">
+
+<!-- ===== SPLASH (animasi masuk) ===== -->
+<div id="splash">
+  <div class="s-star">⭐</div>
+  <div class="s-name">Kiddio Star</div>
+  <div class="s-tag">Jadwal seru penuh bintang</div>
+</div>
 
 <!-- ===== LOGIN ===== -->
 <div id="login-screen" class="ob-wrap" style="align-items:center;justify-content:center">
@@ -447,6 +468,7 @@
       <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px" id="cs-subtitle">Jadwal aktif untuk si kecil</div>
       <div id="custom-list"></div>
       <button class="add-sched-btn" onclick="openAddModal(null)">＋ Tambah Kegiatan Baru</button>
+      <button class="add-sched-btn" onclick="regenerateSchedule()" style="border-color:#C7DBFF;color:#1565C0;margin-top:8px">🔄 Buat Ulang Jadwal Otomatis (pagi → tidur)</button>
       <div style="margin-top:12px;padding:12px;background:#FFF8E6;border-radius:12px;font-size:12px;font-weight:600;color:#854F0B">
         💡 Tip: Kegiatan di sini akan langsung muncul di jadwal anak. Atur waktu yang sesuai dengan rutinitas keluarga!
       </div>
@@ -469,17 +491,22 @@
         <div style="display:flex;flex-direction:column;gap:0">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
             <span style="font-size:13px;font-weight:600;color:var(--dark)">🔔 Pengingat Kegiatan</span>
-            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            <button id="rmd-toggle" class="toggle" onclick="toggleReminder(this)"></button>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
             <span style="font-size:13px;font-weight:600;color:var(--dark)">🎵 Suara Reward</span>
             <button id="snd-toggle" class="toggle on" onclick="toggleSound(this)"></button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
+            <span style="font-size:13px;font-weight:600;color:var(--dark)">➖ Pengurangan bintang / tugas terlewat</span>
+            <input id="penalty-input" type="number" min="0" value="5" onchange="setPenalty(this.value)" style="width:56px;text-align:center;border:2px solid #E8E4FF;border-radius:8px;padding:5px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:var(--dark);outline:none">
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
             <span style="font-size:13px;font-weight:600;color:var(--dark)">🔒 PIN Mode Ortu <span id="pin-status" style="font-weight:700;color:var(--muted)">(nonaktif)</span></span>
             <button onclick="setParentPin()" style="padding:6px 12px;border:2px solid #E8E4FF;border-radius:8px;background:#EEF4FF;color:#1565C0;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Atur PIN</button>
           </div>
         </div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:6px">💡 Pengingat berbunyi/menampilkan notifikasi saat aplikasi terbuka. Isi 0 pada pengurangan bintang untuk menonaktifkannya.</div>
         <div id="account-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;border-top:1px solid #F0EEFF;margin-top:8px">
           <span style="font-size:12px;font-weight:700;color:var(--dark)">👤 <span id="account-email" style="color:var(--muted);font-weight:600">—</span></span>
           <button onclick="logout()" style="padding:6px 12px;border:2px solid #E8E4FF;border-radius:8px;background:#F5F0FF;color:var(--purple);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Keluar</button>
@@ -528,6 +555,9 @@ let reflections = [];    // jawaban worksheet anak (untuk ortu)
 let rewards = [];        // hadiah nyata yang diatur ortu
 let redemptions = [];    // riwayat penukaran hadiah
 let soundOn = true;      // efek suara aktif?
+let reminderOn = false;  // pengingat kegiatan aktif?
+let penaltyPerTask = 5;  // pengurangan bintang per tugas terlewat (0 = nonaktif)
+let lastPenalty = 0;     // info penalti terakhir (untuk popup)
 
 function defaultRewards(){
   return [
@@ -604,28 +634,30 @@ const worksheets = {
 
 /* Kegiatan dasar. worship:true → punya nama/ikon alternatif ibadah
    yang dipakai bila profil mengaktifkan "Sertakan kegiatan ibadah". */
-const baseTasksByAge = {
-  '5-7':[
-    {name:'Bangun Pagi',worshipName:'Bangun & Sholat Subuh',icon:'🌅',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.30'},
-    {name:'Sarapan Sehat',icon:'🥣',bg:'#FFF8E6',pts:5,ws:false,time:'07.00'},
-    {name:'Istirahat Siang',icon:'😴',bg:'#F0EEFF',pts:5,ws:false,time:'13.00'},
-  ],
-  '8-10':[
-    {name:'Bangun Pagi',worshipName:'Bangun & Sholat Subuh',icon:'🌅',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
-    {name:'Sarapan & Siap Hari',icon:'🍳',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Belajar Mandiri',icon:'📝',bg:'#EFFFFA',pts:15,ws:true,topic:'belajar',time:'09.00'},
-  ],
-  '11-13':[
-    {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga Pagi',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
-    {name:'Sarapan Bergizi',icon:'🥗',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Belajar Intensif',icon:'📖',bg:'#EFFFFA',pts:20,ws:true,topic:'belajar',time:'08.00'},
-  ],
-  '14+':[
-    {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'04.45'},
-    {name:'Sarapan & Perencanaan',icon:'📋',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
-    {name:'Studi Mandiri',icon:'🎓',bg:'#EFFFFA',pts:25,ws:true,topic:'belajar',time:'08.00'},
-  ]
+/* Parameter jam per kelompok usia (sisanya seragam) */
+const ageParams = {
+  '5-7':  {wake:'05.30', study:'18.30', prep:'19.30', sleep:'20.00', studyPts:10},
+  '8-10': {wake:'05.00', study:'19.00', prep:'20.30', sleep:'21.00', studyPts:15},
+  '11-13':{wake:'05.00', study:'19.30', prep:'21.00', sleep:'21.30', studyPts:20},
+  '14+':  {wake:'04.45', study:'19.30', prep:'21.30', sleep:'22.00', studyPts:25},
 };
+/* Kerangka kegiatan satu hari penuh (pagi → tidur) */
+function buildBaseDay(age){
+  const p=ageParams[age]||ageParams['8-10'];
+  const worship=profile.includeWorship!==false;
+  return [
+    {name: worship?'Bangun & Sholat Subuh':'Bangun Pagi', icon: worship?'🕌':'🌅', bg:'#EEF4FF', pts:10, ws:false, time:p.wake},
+    {name:'Sarapan & Siap Hari', icon:'🍳', bg:'#FFF8E6', pts:5, ws:false, time:'06.30'},
+    {name:'Belajar di Sekolah', icon:'🎒', bg:'#EEF4FF', pts:10, ws:false, time:'07.30'},
+    {name:'Makan Siang', icon:'🍽️', bg:'#FFF8E6', pts:5, ws:false, time:'12.00'},
+    {name:'Istirahat Siang', icon:'😴', bg:'#F0EEFF', pts:5, ws:false, time:'13.00'},
+    {name:'Mandi Sore', icon:'🚿', bg:'#EEF4FF', pts:5, ws:false, time:'16.30'},
+    {name:'Makan Malam Bersama', icon:'🍲', bg:'#FFF8E6', pts:5, ws:false, time:'18.00'},
+    {name:'Belajar Mandiri', icon:'📝', bg:'#EFFFFA', pts:p.studyPts, ws:true, topic:'belajar', time:p.study},
+    {name:'Bersiap Tidur (sikat gigi)', icon:'🪥', bg:'#F0EEFF', pts:5, ws:false, time:p.prep},
+    {name:'Tidur', icon:'😴', bg:'#EEF4FF', pts:10, ws:false, time:p.sleep},
+  ];
+}
 
 let tasks = [];
 let customTasks = null;
@@ -725,21 +757,21 @@ function buildOb4(){
 
 function generateTasks(){
   const age=profile.ageGroup||'8-10';
-  const worship=profile.includeWorship!==false;
-  const base=(baseTasksByAge[age]||baseTasksByAge['8-10']).map((t,i)=>({
-    name:(t.worship&&worship&&t.worshipName)?t.worshipName:t.name,
-    icon:(t.worship&&worship&&t.worshipIcon)?t.worshipIcon:t.icon,
-    bg:t.bg,pts:t.pts,ws:t.ws,topic:t.topic,id:i+1,done:false,
-    time:t.time+' - '+(String(parseInt(t.time)+1).padStart(2,'0'))+'.00'
-  }));
+  const base=buildBaseDay(age);
   let intTasks=[];
   profile.interests.forEach((key,i)=>{
     if(interestTaskMap[key]){
-      intTasks.push({...interestTaskMap[key][0],topic:key,id:base.length+i+1,done:false,
-        time:(String(10+i)).padStart(2,'0')+'.00 - '+(String(11+i)).padStart(2,'0')+'.00'});
+      intTasks.push({...interestTaskMap[key][0], topic:key, time:String(15+i).padStart(2,'0')+'.00'}); // sore 15.00, 16.00, ...
     }
   });
-  return [...base,...intTasks.slice(0,4)];
+  const all=[...base, ...intTasks.slice(0,4)];
+  const toMin=s=>{const a=String(s).split('.'); return parseInt(a[0])*60+(parseInt(a[1])||0);};
+  all.sort((x,y)=>toMin(x.time)-toMin(y.time)); // urut dari pagi ke malam
+  return all.map((t,i)=>{
+    const a=String(t.time).split('.');
+    const endH=String((parseInt(a[0])+1)%24).padStart(2,'0');
+    return {...t, id:i+1, done:false, time:t.time+' - '+endH+'.'+(a[1]||'00')};
+  });
 }
 
 function finishOnboarding(){
@@ -783,6 +815,8 @@ function renderAll(){
   renderRewardStore();
   renderParentRewards();
   renderSoundToggle();
+  renderReminderToggle();
+  renderPenaltyInput();
 }
 
 function renderTasks(){
@@ -1230,9 +1264,72 @@ function sfx(name){
   else if(name==='reward'){ [523,659,784,1047].forEach((f,i)=>beep(f,i*0.1,0.22,'triangle',0.22)); }
   else if(name==='badge'){ [659,784,988,1319].forEach((f,i)=>beep(f,i*0.12,0.28,'triangle',0.2)); }
   else if(name==='redeem'){ beep(988,0,0.12,'square',0.18); beep(1319,0.12,0.22,'square',0.18); }
+  else if(name==='reminder'){ beep(880,0,0.18,'sine',0.22); beep(1175,0.2,0.25,'sine',0.22); }
 }
 function renderSoundToggle(){ const b=document.getElementById('snd-toggle'); if(b) b.classList.toggle('on',soundOn); }
 function toggleSound(btn){ soundOn=!soundOn; btn.classList.toggle('on',soundOn); if(soundOn){ ensureAudio(); sfx('complete'); } saveState(); }
+
+/* ===== PENGINGAT KEGIATAN (notifikasi + suara, saat app terbuka) ===== */
+let reminderLoop=null;
+let remindedToday={}; // {taskId: dateKey} agar tidak mengingatkan ganda
+function renderReminderToggle(){ const b=document.getElementById('rmd-toggle'); if(b) b.classList.toggle('on',reminderOn); }
+function toggleReminder(btn){
+  reminderOn=!reminderOn; btn.classList.toggle('on',reminderOn);
+  if(reminderOn){
+    try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
+    startReminderLoop();
+  }
+  saveState();
+}
+function startReminderLoop(){
+  if(reminderLoop) clearInterval(reminderLoop);
+  reminderLoop=setInterval(checkReminders, 30000); // cek tiap 30 detik
+  checkReminders();
+}
+function checkReminders(){
+  if(!reminderOn) return;
+  const now=new Date(), hh=now.getHours(), mm=now.getMinutes(), key=todayKey();
+  (customTasks||tasks).forEach(tk=>{
+    if(tk.done) return;
+    const start=(tk.time||'').split(' - ')[0]; if(!start) return;
+    const a=start.split('.'); const sh=parseInt(a[0]), sm=parseInt(a[1])||0;
+    if(sh===hh && sm===mm && remindedToday[tk.id]!==key){
+      remindedToday[tk.id]=key; fireReminder(tk);
+    }
+  });
+}
+function fireReminder(tk){
+  sfx('reminder');
+  try{
+    if('Notification' in window && Notification.permission==='granted'){
+      new Notification('⏰ Waktunya '+tk.name+'!', {body:'Yuk kerjakan dan dapat +'+tk.pts+'⭐', icon:'icon-192.png'});
+      return;
+    }
+  }catch(e){}
+  showToast('⏰ Waktunya '+tk.name+'! (+'+tk.pts+'⭐)');
+}
+function showToast(msg){
+  let t=document.getElementById('app-toast');
+  if(!t){ t=document.createElement('div'); t.id='app-toast'; document.getElementById('app').appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(()=>t.classList.remove('show'), 4500);
+}
+
+/* ===== SETELAN PENGURANGAN BINTANG (ortu) ===== */
+function renderPenaltyInput(){ const i=document.getElementById('penalty-input'); if(i) i.value=penaltyPerTask; }
+function setPenalty(v){ penaltyPerTask=Math.max(0, parseInt(v)||0); saveState(); }
+
+/* ===== BUAT ULANG JADWAL OTOMATIS (ortu) ===== */
+function regenerateSchedule(){
+  if(!confirm('Buat ulang jadwal otomatis sesuai profil & minat anak? Jadwal yang ada sekarang (termasuk editan) akan diganti.')) return;
+  tasks=generateTasks();
+  customTasks=[...tasks];
+  remindedToday={};
+  renderTasks(); renderSchedGrid(); renderCustomList(); updateProgress(); renderParentDash();
+  saveState();
+  alert('Jadwal otomatis penuh (pagi sampai jam tidur) sudah dibuat ✅');
+}
 
 /* ===== TOKO HADIAH (anak) ===== */
 function renderRewardStore(){
@@ -1360,7 +1457,17 @@ function todayKey(){return dateKey(new Date());}
 function dailyRollover(){
   const today=todayKey();
   if(lastResetDate===today) return;
-  if(lastResetDate){ (customTasks||tasks).forEach(x=>x.done=false); }
+  lastPenalty=0;
+  if(lastResetDate){
+    const t=customTasks||tasks;
+    // pengurangan bintang untuk tugas yang kemarin tidak dilakukan
+    if(penaltyPerTask>0){
+      const missed=t.filter(x=>!x.done).length;
+      const cut=missed*penaltyPerTask;
+      if(cut>0){ totalStars=Math.max(0, totalStars-cut); lastPenalty=cut; }
+    }
+    t.forEach(x=>x.done=false);
+  }
   lastResetDate=today;
 }
 
@@ -1459,7 +1566,7 @@ function buildState(){
   return {
     profile, totalStars, tasks:customTasks||tasks, notesList,
     history, lastResetDate, lifetimeDone, earnedBadges, parentPin, reflections,
-    rewards, redemptions, soundOn,
+    rewards, redemptions, soundOn, reminderOn, penaltyPerTask,
     onboarded:!!profile.name
   };
 }
@@ -1480,6 +1587,8 @@ function applyState(s){
   rewards=Array.isArray(s.rewards)?s.rewards:defaultRewards();
   redemptions=Array.isArray(s.redemptions)?s.redemptions:[];
   soundOn=s.soundOn!==false;
+  reminderOn=s.reminderOn===true;
+  penaltyPerTask=(typeof s.penaltyPerTask==='number')?s.penaltyPerTask:5;
   return true;
 }
 function saveState(){
@@ -1514,10 +1623,24 @@ function bootWithState(loaded, skipSave){
     dailyRollover(); syncBadges();
     showAppScreen();
     renderAll(); renderNotes();
+    if(reminderOn) startReminderLoop();
     if(!skipSave) saveState();
+    if(lastPenalty>0){ showPenaltyPopup(lastPenalty); lastPenalty=0; saveState(); }
   } else {
     showOnboardingScreen();
   }
+}
+function showPenaltyPopup(cut){
+  const app=document.getElementById('main-app');
+  const p=document.createElement('div'); p.className='rwd-overlay'; p.id='rwd-pop';
+  p.innerHTML=`<div class="rwd-box">
+    <span class="rwd-em" style="animation:none">📋</span>
+    <h3>Hari Baru!</h3>
+    <p>Beberapa tugas kemarin terlewat,<br>jadi bintang sedikit berkurang.</p>
+    <span class="rwd-pts" style="color:#C62828">-${cut} ⭐</span>
+    <button class="rwd-ok" onclick="closeReward()">Semangat hari ini! 💪</button>
+  </div>`;
+  app.appendChild(p);
 }
 function overlayOpen(){
   return !!(document.getElementById('ws-ol')||document.getElementById('add-modal')||document.getElementById('reward-modal')||document.getElementById('rwd-pop')||document.getElementById('bdg-pop'));
@@ -1601,6 +1724,12 @@ function resetApp(){
     bootWithState(loadLocalCache()); // Firebase tak termuat → mode lokal saja
   }
 })();
+
+/* Sembunyikan splash setelah animasi singkat */
+setTimeout(function(){
+  const s=document.getElementById('splash');
+  if(s){ s.classList.add('hide'); setTimeout(function(){ if(s.parentNode) s.remove(); }, 600); }
+}, 1700);
 
 /* ===== PWA: service worker + tombol pasang ===== */
 if('serviceWorker' in navigator){
