@@ -382,6 +382,8 @@
         <p id="rew-stars-lbl">0 bintang terkumpul</p>
         <div style="font-size:28px;font-weight:900;margin-top:8px;color:#fff" id="rew-stars-big">0 ⭐</div>
       </div>
+      <div class="sec-lbl">🎁 Toko Hadiah</div>
+      <div id="reward-store"></div>
       <div class="sec-lbl">🎖 Level Pencapaian</div>
       <div id="level-list"></div>
       <div class="sec-lbl">🏅 Semua Lencana</div>
@@ -400,8 +402,9 @@
   <div id="parent-mode" class="hidden screen active" style="padding:14px 14px 30px">
     <!-- TABS -->
     <div class="cs-tab-row">
-      <button class="cs-tab active" onclick="parentTab('dashboard',this)">📊 Dashboard</button>
-      <button class="cs-tab" onclick="parentTab('custom',this)">⚙️ Atur Jadwal</button>
+      <button class="cs-tab active" onclick="parentTab('dashboard',this)">📊 Statistik</button>
+      <button class="cs-tab" onclick="parentTab('custom',this)">⚙️ Jadwal</button>
+      <button class="cs-tab" onclick="parentTab('rewards',this)">🎁 Hadiah</button>
       <button class="cs-tab" onclick="parentTab('notes',this)">📝 Catatan</button>
     </div>
 
@@ -470,7 +473,7 @@
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
             <span style="font-size:13px;font-weight:600;color:var(--dark)">🎵 Suara Reward</span>
-            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            <button id="snd-toggle" class="toggle on" onclick="toggleSound(this)"></button>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
             <span style="font-size:13px;font-weight:600;color:var(--dark)">🔒 PIN Mode Ortu <span id="pin-status" style="font-weight:700;color:var(--muted)">(nonaktif)</span></span>
@@ -482,6 +485,24 @@
           <button onclick="logout()" style="padding:6px 12px;border:2px solid #E8E4FF;border-radius:8px;background:#F5F0FF;color:var(--purple);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Keluar</button>
         </div>
         <button onclick="resetApp()" style="width:100%;margin-top:12px;padding:11px;background:#FFF0F0;color:#C62828;border:2px solid #FFD4D4;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer">🔄 Reset & Mulai Ulang dari Awal</button>
+      </div>
+    </div>
+
+    <!-- REWARDS ADMIN -->
+    <div id="pt-rewards" class="hidden">
+      <div class="hero-card" style="background:#FF8C42">
+        <h2>🎁 Hadiah Nyata</h2>
+        <p>Atur hadiah yang bisa ditukar anak dengan bintang</p>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px">Daftar hadiah</div>
+      <div id="reward-admin-list"></div>
+      <button class="add-sched-btn" onclick="openRewardModal(null)">＋ Tambah Hadiah</button>
+      <div class="card" style="margin-top:14px">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">📜 Riwayat Penukaran</div>
+        <div id="redemption-list"></div>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:#FFF8E6;border-radius:12px;font-size:12px;font-weight:600;color:#854F0B">
+        💡 Saat anak menukar hadiah, bintangnya otomatis berkurang & muncul di riwayat. Tandai ✓ bila hadiah sudah Anda berikan.
       </div>
     </div>
   </div>
@@ -504,6 +525,19 @@ let lifetimeDone = 0;    // total kegiatan diselesaikan sepanjang waktu
 let earnedBadges = [];   // id lencana yang sudah diraih
 let parentPin = '';      // '' = PIN nonaktif
 let reflections = [];    // jawaban worksheet anak (untuk ortu)
+let rewards = [];        // hadiah nyata yang diatur ortu
+let redemptions = [];    // riwayat penukaran hadiah
+let soundOn = true;      // efek suara aktif?
+
+function defaultRewards(){
+  return [
+    {id:1, icon:'🎮', name:'30 menit waktu bermain', cost:30},
+    {id:2, icon:'🍦', name:'Es krim / camilan favorit', cost:50},
+    {id:3, icon:'🎬', name:'Nonton film pilihanmu', cost:80},
+    {id:4, icon:'🏞️', name:'Jalan-jalan ke taman', cost:120},
+    {id:5, icon:'🧸', name:'Mainan kecil', cost:200},
+  ];
+}
 
 const interestTaskMap = {
   buku:[{name:'Membaca Buku',icon:'📚',bg:'#F0EEFF',pts:15,ws:true}],
@@ -712,6 +746,8 @@ function finishOnboarding(){
   tasks=generateTasks();
   customTasks=[...tasks];
   lastResetDate=todayKey();
+  rewards=defaultRewards();
+  redemptions=[];
   showAppScreen();
   renderAll();
   saveState();
@@ -744,6 +780,9 @@ function renderAll(){
   renderParentDash();
   renderCustomList();
   renderPinStatus();
+  renderRewardStore();
+  renderParentRewards();
+  renderSoundToggle();
 }
 
 function renderTasks(){
@@ -933,6 +972,7 @@ function completeTask(task){
 }
 
 function showReward(task){
+  sfx('reward');
   const app=document.getElementById('main-app');
   const p=document.createElement('div');
   p.className='rwd-overlay'; p.id='rwd-pop';
@@ -1142,7 +1182,7 @@ function showTab(tab,btn){
 }
 
 function parentTab(tab,btn){
-  ['dashboard','custom','notes'].forEach(t=>document.getElementById('pt-'+t).classList.add('hidden'));
+  ['dashboard','custom','notes','rewards'].forEach(t=>document.getElementById('pt-'+t).classList.add('hidden'));
   document.getElementById('pt-'+tab).classList.remove('hidden');
   document.querySelectorAll('.cs-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -1164,6 +1204,152 @@ function renderNotes(){
       <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">${n.date}</div>
       <div style="font-size:13px;font-weight:600;color:var(--dark)">${n.text}</div>
     </div>`).join('');
+}
+
+/* ===== EFEK SUARA (Web Audio, tanpa file) ===== */
+let audioCtx=null;
+function ensureAudio(){
+  try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
+  return audioCtx;
+}
+function beep(freq,start,dur,type,vol){
+  const ctx=audioCtx; if(!ctx) return;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type=type||'triangle'; o.frequency.value=freq;
+  const t0=ctx.currentTime+start;
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.linearRampToValueAtTime(vol||0.2,t0+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t0); o.stop(t0+dur+0.03);
+}
+function sfx(name){
+  if(!soundOn) return;
+  const ctx=ensureAudio(); if(!ctx) return;
+  if(name==='complete'){ [523,659,784].forEach((f,i)=>beep(f,i*0.08,0.18,'triangle',0.2)); }
+  else if(name==='reward'){ [523,659,784,1047].forEach((f,i)=>beep(f,i*0.1,0.22,'triangle',0.22)); }
+  else if(name==='badge'){ [659,784,988,1319].forEach((f,i)=>beep(f,i*0.12,0.28,'triangle',0.2)); }
+  else if(name==='redeem'){ beep(988,0,0.12,'square',0.18); beep(1319,0.12,0.22,'square',0.18); }
+}
+function renderSoundToggle(){ const b=document.getElementById('snd-toggle'); if(b) b.classList.toggle('on',soundOn); }
+function toggleSound(btn){ soundOn=!soundOn; btn.classList.toggle('on',soundOn); if(soundOn){ ensureAudio(); sfx('complete'); } saveState(); }
+
+/* ===== TOKO HADIAH (anak) ===== */
+function renderRewardStore(){
+  const c=document.getElementById('reward-store'); if(!c) return;
+  if(!rewards.length){ c.innerHTML='<div style="font-size:12px;color:var(--muted);font-weight:600;padding:4px 2px">Belum ada hadiah. Minta orang tua menambahkannya di tab 🎁 Hadiah.</div>'; return; }
+  c.innerHTML=rewards.map(r=>{
+    const can=totalStars>=r.cost;
+    return `<div style="background:var(--white);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:26px">${escapeHtml(r.icon)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:800;color:var(--dark)">${escapeHtml(r.name)}</div>
+        <div style="font-size:11px;font-weight:700;color:#D4930A">${r.cost} ⭐</div>
+      </div>
+      <button onclick="redeemReward(${r.id})" ${can?'':'disabled'} style="padding:8px 12px;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:${can?'pointer':'not-allowed'};background:${can?'var(--mint)':'#E5E7EB'};color:${can?'#fff':'#9CA3AF'}">${can?'Tukar':'Kurang ⭐'}</button>
+    </div>`;
+  }).join('');
+}
+function redeemReward(id){
+  const r=rewards.find(x=>x.id===id); if(!r) return;
+  if(totalStars<r.cost){ alert('Bintangmu belum cukup untuk hadiah ini. 😊'); return; }
+  if(!confirm('Tukar '+r.cost+'⭐ untuk "'+r.name+'"?')) return;
+  totalStars-=r.cost;
+  redemptions.unshift({id:Date.now(), reward:r.name, icon:r.icon, cost:r.cost, date:new Date().toLocaleDateString('id-ID'), given:false});
+  if(redemptions.length>50) redemptions=redemptions.slice(0,50);
+  sfx('redeem');
+  updateProgress(); renderRewardStore(); renderParentRewards();
+  saveState();
+  const app=document.getElementById('main-app');
+  const p=document.createElement('div'); p.className='rwd-overlay'; p.id='rwd-pop';
+  p.innerHTML=`<div class="rwd-box">
+    <div class="confrow"><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div></div>
+    <span class="rwd-em">${escapeHtml(r.icon)}</span>
+    <h3>Hadiah Ditukar!</h3>
+    <p>Tunjukkan ke orang tua:<br><strong>${escapeHtml(r.name)}</strong></p>
+    <span class="rwd-pts">-${r.cost} ⭐</span>
+    <button class="rwd-ok" onclick="closeReward()">Asyik! 🎁</button>
+  </div>`;
+  app.appendChild(p);
+}
+
+/* ===== ADMIN HADIAH (ortu) ===== */
+function renderParentRewards(){
+  const list=document.getElementById('reward-admin-list');
+  if(list){
+    list.innerHTML = rewards.length ? rewards.map(r=>`
+      <div class="sched-item">
+        <div class="s-icon">${escapeHtml(r.icon)}</div>
+        <div class="s-info">
+          <div class="s-name">${escapeHtml(r.name)}</div>
+          <div class="s-time">${r.cost} ⭐</div>
+        </div>
+        <div class="s-actions">
+          <button class="icon-btn edit" onclick="openRewardModal(${r.id})" title="Edit">✏️</button>
+          <button class="icon-btn del" onclick="deleteReward(${r.id})" title="Hapus">🗑️</button>
+        </div>
+      </div>`).join('') : '<div style="font-size:12px;color:var(--muted);font-weight:600">Belum ada hadiah. Tambahkan di bawah.</div>';
+  }
+  const rl=document.getElementById('redemption-list');
+  if(rl){
+    rl.innerHTML = redemptions.length ? redemptions.slice(0,20).map(x=>`
+      <div class="log-item">
+        <div class="log-t">${escapeHtml(x.icon+' '+x.reward)} <span style="color:#D4930A;font-weight:700">(${x.cost}⭐)</span>
+          <div style="font-size:10px;color:var(--muted);font-weight:600">${escapeHtml(x.date)}</div></div>
+        <button onclick="toggleGiven(${x.id})" style="padding:5px 10px;border-radius:8px;border:2px solid ${x.given?'var(--mint)':'#E8E4FF'};background:${x.given?'#EFFFFA':'#fff'};color:${x.given?'#0F6E56':'var(--muted)'};font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer">${x.given?'✓ Diberikan':'Tandai beri'}</button>
+      </div>`).join('') : '<div style="font-size:12px;color:var(--muted);font-weight:600">Belum ada penukaran.</div>';
+  }
+}
+function toggleGiven(id){
+  const x=redemptions.find(r=>r.id===id); if(!x) return;
+  x.given=!x.given; saveState(); renderParentRewards();
+}
+let editingRewardId=null;
+let pickedRewardEmoji='🎁';
+const rewardEmojiOpts=['🎁','🎮','🍦','🎬','🏞️','🧸','📱','🍕','🚲','🎨','⚽','📚','🐶','💤','🍫','🛝'];
+function openRewardModal(id){
+  editingRewardId=id;
+  const existing = id ? rewards.find(r=>r.id===id) : null;
+  pickedRewardEmoji = existing?existing.icon:'🎁';
+  const app=document.getElementById('main-app');
+  const ol=document.createElement('div'); ol.className='modal-overlay'; ol.id='reward-modal';
+  ol.innerHTML=`<div class="modal-box">
+    <h3>${id?'✏️ Edit Hadiah':'➕ Tambah Hadiah'}</h3>
+    <div class="m-field"><label class="m-label">Nama Hadiah</label>
+      <input class="m-input" id="r-name" placeholder="Contoh: Nonton film pilihan" value="${existing?escapeHtml(existing.name):''}"></div>
+    <div class="m-field"><label class="m-label">Biaya Bintang</label>
+      <input class="m-input" id="r-cost" type="number" min="1" value="${existing?existing.cost:50}"></div>
+    <div class="m-field"><label class="m-label">Ikon Hadiah</label>
+      <div class="emoji-pick" id="reward-emoji-pick">
+        ${rewardEmojiOpts.map(e=>`<button class="em-btn${e===pickedRewardEmoji?' sel':''}" onclick="pickRewardEmoji('${e}',this)">${e}</button>`).join('')}
+      </div></div>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeRewardModal()">Batal</button>
+      <button class="m-save" onclick="saveReward()">💾 Simpan</button>
+    </div>
+  </div>`;
+  app.appendChild(ol);
+}
+function pickRewardEmoji(e,btn){ pickedRewardEmoji=e; document.querySelectorAll('#reward-emoji-pick .em-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
+function closeRewardModal(){ const m=document.getElementById('reward-modal'); if(m)m.remove(); }
+function saveReward(){
+  const name=document.getElementById('r-name').value.trim();
+  if(!name){ alert('Isi nama hadiah dulu!'); return; }
+  const cost=Math.max(1, parseInt(document.getElementById('r-cost').value)||1);
+  if(editingRewardId){
+    const r=rewards.find(x=>x.id===editingRewardId);
+    if(r){ r.name=name; r.cost=cost; r.icon=pickedRewardEmoji; }
+  } else {
+    const newId=Math.max(0,...rewards.map(x=>x.id))+1;
+    rewards.push({id:newId, name, cost, icon:pickedRewardEmoji});
+  }
+  closeRewardModal();
+  renderParentRewards(); renderRewardStore(); saveState();
+}
+function deleteReward(id){
+  if(!confirm('Hapus hadiah ini?')) return;
+  const i=rewards.findIndex(x=>x.id===id); if(i>=0) rewards.splice(i,1);
+  renderParentRewards(); renderRewardStore(); saveState();
 }
 
 /* ===== HARI, STREAK, RIWAYAT ===== */
@@ -1218,7 +1404,7 @@ function checkBadges(){ // cek lencana baru DAN tampilkan popup
   const s=getStats();
   const newly=[];
   badgeDefs.forEach(b=>{ if(b.cond(s)&&!earnedBadges.includes(b.id)){ earnedBadges.push(b.id); newly.push(b); } });
-  if(newly.length){ renderBadges(); renderParentDash(); showBadgePopup(newly[0]); }
+  if(newly.length){ sfx('badge'); renderBadges(); renderParentDash(); showBadgePopup(newly[0]); }
 }
 function showBadgePopup(b){
   const app=document.getElementById('main-app');
@@ -1273,6 +1459,7 @@ function buildState(){
   return {
     profile, totalStars, tasks:customTasks||tasks, notesList,
     history, lastResetDate, lifetimeDone, earnedBadges, parentPin, reflections,
+    rewards, redemptions, soundOn,
     onboarded:!!profile.name
   };
 }
@@ -1290,6 +1477,9 @@ function applyState(s){
   earnedBadges=Array.isArray(s.earnedBadges)?s.earnedBadges:[];
   parentPin=s.parentPin||'';
   reflections=Array.isArray(s.reflections)?s.reflections:[];
+  rewards=Array.isArray(s.rewards)?s.rewards:defaultRewards();
+  redemptions=Array.isArray(s.redemptions)?s.redemptions:[];
+  soundOn=s.soundOn!==false;
   return true;
 }
 function saveState(){
@@ -1330,7 +1520,7 @@ function bootWithState(loaded, skipSave){
   }
 }
 function overlayOpen(){
-  return !!(document.getElementById('ws-ol')||document.getElementById('add-modal')||document.getElementById('rwd-pop')||document.getElementById('bdg-pop'));
+  return !!(document.getElementById('ws-ol')||document.getElementById('add-modal')||document.getElementById('reward-modal')||document.getElementById('rwd-pop')||document.getElementById('bdg-pop'));
 }
 
 /* ===== FIREBASE AUTH + CLOUD ===== */
