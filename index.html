@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KiddoPlan</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--sky:#5B8DEF;--sun:#FFD166;--mint:#06D6A0;--coral:#FF6B6B;--lav:#F0EEFF;--purple:#7B5EA7;--dark:#2D2D5E;--muted:#6B7280;--white:#FEFEFE;--cr:20px;--br:14px}
+#app{background:var(--lav);min-height:640px;font-family:'Nunito',sans-serif;max-width:480px;margin:0 auto;position:relative}
+.hidden{display:none!important}
+.screen{padding:16px 16px 80px;display:none}
+.screen.active{display:block}
+
+/* NAV */
+.top-nav{background:var(--white);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #E8E4FF;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:17px;font-weight:900;color:var(--dark);display:flex;align-items:center;gap:6px}
+.nav-tabs{display:flex;gap:3px;background:#F0EEFF;border-radius:10px;padding:3px}
+.nav-tab{padding:5px 12px;border-radius:8px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+.nav-tab.active{background:var(--sky);color:#fff}
+
+/* BOTTOM NAV */
+.bot-nav{background:var(--white);border-top:2px solid #E8E4FF;display:flex;z-index:50;margin-top:auto}
+.bnav{flex:1;padding:8px 0;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Nunito',sans-serif;font-size:10px;font-weight:700;color:var(--muted)}
+.bnav span{font-size:20px}
+.bnav.active{color:var(--sky)}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--cr);padding:16px;margin-bottom:12px}
+.hero-card{border-radius:var(--cr);padding:18px;margin-bottom:14px;color:#fff}
+.hero-card h2{font-size:20px;font-weight:900}
+.hero-card p{font-size:12px;opacity:.8;margin-top:4px}
+
+/* ONBOARDING */
+.ob-wrap{background:var(--lav);min-height:640px;display:flex;flex-direction:column}
+.ob-header{background:var(--white);padding:14px 16px;border-bottom:2px solid #E8E4FF;display:flex;align-items:center;justify-content:space-between}
+.ob-header .logo{font-size:17px;font-weight:900;color:var(--dark)}
+.ob-body{flex:1;padding:20px 16px}
+.ob-step-ind{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:#D1C4FF;transition:all .3s}
+.ob-dot.active{background:var(--sky);width:22px;border-radius:4px}
+.ob-title{font-size:22px;font-weight:900;color:var(--dark);margin-bottom:6px;text-align:center}
+.ob-sub{font-size:13px;color:var(--muted);font-weight:600;text-align:center;margin-bottom:20px}
+.ob-field{margin-bottom:14px}
+.ob-label{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px;display:block}
+.ob-input{width:100%;border:2px solid #E8E4FF;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;color:var(--dark);outline:none;background:var(--white)}
+.ob-input:focus{border-color:var(--sky)}
+.ob-input[type=number]{-moz-appearance:textfield}
+.age-btns{display:flex;gap:8px;flex-wrap:wrap}
+.age-btn{padding:8px 16px;border-radius:10px;border:2px solid #E8E4FF;background:var(--white);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+.age-btn.sel{border-color:var(--sky);background:#EEF4FF;color:#1565C0}
+.interest-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.int-card{border:2px solid #E8E4FF;border-radius:14px;padding:12px;text-align:center;cursor:pointer;background:var(--white);transition:all .2s}
+.int-card.sel{border-color:var(--sky);background:#EEF4FF}
+.int-card span{font-size:28px;display:block;margin-bottom:4px}
+.int-card p{font-size:12px;font-weight:700;color:var(--dark)}
+.avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.av-btn{border:2px solid #E8E4FF;border-radius:12px;padding:8px;text-align:center;cursor:pointer;background:var(--white);font-size:24px;transition:all .2s}
+.av-btn.sel{border-color:var(--coral);background:#FFF0F0}
+.ob-next{width:100%;padding:14px;background:var(--sky);color:#fff;border:none;border-radius:var(--br);font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;cursor:pointer;margin-top:8px;transition:transform .15s}
+.ob-next:hover{transform:scale(1.02)}
+.ob-back{width:100%;padding:10px;background:transparent;color:var(--muted);border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+
+/* HOME */
+.greeting-box{border-radius:var(--cr);padding:18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;background:#5B8DEF}
+.greeting-box h2{color:#fff;font-size:19px;font-weight:900}
+.greeting-box p{color:rgba(255,255,255,.8);font-size:12px;margin-top:3px}
+.stars-box{text-align:center;color:#fff}
+.stars-box .n{font-size:32px;font-weight:900;line-height:1}
+.stars-box .l{font-size:10px;opacity:.8}
+.prog-card{background:var(--white);border-radius:var(--cr);padding:14px;margin-bottom:12px}
+.prog-bar-bg{background:#F0EEFF;border-radius:20px;height:16px;overflow:hidden;margin:8px 0 4px}
+.prog-bar{height:100%;border-radius:20px;background:var(--mint);transition:width .6s}
+.sec-lbl{font-size:14px;font-weight:800;color:var(--dark);margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+.task-card{background:var(--white);border-radius:16px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .15s;border:2px solid transparent}
+.task-card:hover{transform:translateY(-1px)}
+.task-card.done{border-color:var(--mint);opacity:.75}
+.t-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.t-name{font-size:14px;font-weight:800;color:var(--dark)}
+.t-time{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+.t-pts{font-size:11px;font-weight:700;color:#D4930A;background:#FFF8E6;padding:2px 7px;border-radius:6px}
+.t-chk{width:26px;height:26px;border-radius:50%;border:2.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.t-chk.done{background:var(--mint);border-color:var(--mint);color:#fff}
+
+/* BADGES */
+.bdg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bdg{background:var(--white);border-radius:14px;padding:10px;text-align:center;border:2px solid transparent}
+.bdg.earned{border-color:var(--sun);background:#FFFBF0}
+.bdg.locked{opacity:.4;filter:grayscale(1)}
+.bdg span{font-size:26px;display:block;margin-bottom:3px}
+.bdg p{font-size:10px;font-weight:700;color:var(--dark)}
+
+/* WORKSHEET OVERLAY */
+.overlay{position:absolute;inset:0;background:rgba(45,45,94,.55);z-index:200;display:flex;align-items:flex-end}
+.ws-panel{background:var(--white);border-radius:var(--cr) var(--cr) 0 0;width:100%;padding:18px;max-height:88%;overflow-y:auto}
+.ws-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ws-hd h3{font-size:16px;font-weight:900;color:var(--dark)}
+.ws-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.ws-q{background:#F8F7FF;border-radius:12px;padding:12px;margin-bottom:10px}
+.ws-q p{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:7px}
+.ws-inp{width:100%;border:2px solid #E8E4FF;border-radius:9px;padding:7px 11px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--dark);outline:none;resize:none}
+.ws-inp:focus{border-color:var(--sky)}
+.ws-opt{display:flex;align-items:center;gap:7px;padding:5px 0;cursor:pointer}
+.ws-opt input{accent-color:var(--sky);width:15px;height:15px}
+.ws-opt label{font-size:13px;font-weight:600;color:var(--dark);cursor:pointer}
+.ws-submit{width:100%;padding:13px;background:var(--sky);color:#fff;border:none;border-radius:var(--br);font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;cursor:pointer;margin-top:6px}
+
+/* REWARD POPUP */
+.rwd-overlay{position:absolute;inset:0;background:rgba(45,45,94,.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.rwd-box{background:var(--white);border-radius:var(--cr);padding:24px;text-align:center;width:100%;max-width:300px}
+.rwd-em{font-size:60px;display:block;margin-bottom:10px;animation:bop .5s ease infinite alternate}
+@keyframes bop{from{transform:scale(1) rotate(-4deg)}to{transform:scale(1.1) rotate(4deg)}}
+.rwd-box h3{font-size:20px;font-weight:900;color:var(--dark);margin-bottom:4px}
+.rwd-box p{font-size:13px;color:var(--muted);margin-bottom:12px}
+.rwd-pts{font-size:28px;font-weight:900;color:#D4930A;display:block;margin-bottom:14px}
+.rwd-ok{width:100%;padding:11px;background:var(--mint);color:#fff;border:none;border-radius:var(--br);font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;cursor:pointer}
+.confrow{display:flex;justify-content:center;gap:5px;margin-bottom:8px}
+.cf{width:9px;height:9px;border-radius:2px;animation:cfsp 1s linear infinite}
+.cf:nth-child(1){background:var(--coral);animation-delay:0s}
+.cf:nth-child(2){background:var(--sun);animation-delay:.12s}
+.cf:nth-child(3){background:var(--mint);animation-delay:.24s}
+.cf:nth-child(4){background:var(--sky);animation-delay:.36s}
+.cf:nth-child(5){background:var(--purple);animation-delay:.48s}
+@keyframes cfsp{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.4)}100%{transform:rotate(360deg) scale(1)}}
+
+/* PARENT DASHBOARD */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-box{background:var(--white);border-radius:16px;padding:12px;text-align:center}
+.stat-n{font-size:24px;font-weight:900;display:block}
+.stat-l{font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+.week-bars{display:flex;align-items:flex-end;gap:5px;height:70px;margin:12px 0 6px}
+.bar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar-b{width:100%;border-radius:6px 6px 0 0;min-height:4px}
+.bar-d{font-size:9px;font-weight:700;color:var(--muted)}
+.log-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F0EEFF}
+.log-item:last-child{border:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.log-t{flex:1;font-size:12px;font-weight:600;color:var(--dark)}
+.log-tm{font-size:10px;color:var(--muted)}
+
+/* CUSTOM SCHEDULE (PARENT) */
+.cs-tab-row{display:flex;gap:6px;margin-bottom:14px}
+.cs-tab{flex:1;padding:8px;border-radius:10px;border:2px solid #E8E4FF;background:var(--white);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center}
+.cs-tab.active{border-color:var(--sky);background:#EEF4FF;color:#1565C0}
+.sched-item{background:var(--white);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.sched-item .s-icon{font-size:22px;width:40px;text-align:center;flex-shrink:0}
+.sched-item .s-info{flex:1}
+.sched-item .s-name{font-size:13px;font-weight:800;color:var(--dark)}
+.sched-item .s-time{font-size:11px;color:var(--muted);font-weight:600}
+.sched-item .s-actions{display:flex;gap:4px}
+.icon-btn{width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.icon-btn.edit{background:#EEF4FF;color:#1565C0}
+.icon-btn.del{background:#FFF0F0;color:#C62828}
+.add-sched-btn{width:100%;padding:12px;border:2px dashed #C4B5FD;border-radius:14px;background:transparent;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--purple);cursor:pointer;margin-top:4px;transition:all .2s}
+.add-sched-btn:hover{background:#F5F0FF}
+
+/* ADD SCHEDULE MODAL */
+.modal-overlay{position:absolute;inset:0;background:rgba(45,45,94,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:var(--white);border-radius:var(--cr);padding:20px;width:100%}
+.modal-box h3{font-size:16px;font-weight:900;color:var(--dark);margin-bottom:14px}
+.m-field{margin-bottom:12px}
+.m-label{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:5px;display:block}
+.m-input{width:100%;border:2px solid #E8E4FF;border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;color:var(--dark);outline:none}
+.m-input:focus{border-color:var(--sky)}
+.m-select{width:100%;border:2px solid #E8E4FF;border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;color:var(--dark);outline:none;background:var(--white)}
+.emoji-pick{display:flex;gap:6px;flex-wrap:wrap}
+.em-btn{width:38px;height:38px;border-radius:8px;border:2px solid #E8E4FF;background:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.em-btn.sel{border-color:var(--sky);background:#EEF4FF}
+.m-row{display:flex;gap:8px}
+.m-row .m-field{flex:1}
+.modal-actions{display:flex;gap:8px;margin-top:4px}
+.m-cancel{flex:1;padding:11px;border:2px solid #E8E4FF;border-radius:12px;background:transparent;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer}
+.m-save{flex:2;padding:11px;background:var(--sky);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer}
+
+/* NOTES */
+.note-input{width:100%;border:2px solid #E8E4FF;border-radius:12px;padding:10px 12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--dark);outline:none;resize:vertical;min-height:72px}
+.note-input:focus{border-color:var(--sky)}
+.save-btn{padding:9px 18px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px}
+.toggle{width:42px;height:22px;border-radius:11px;background:#E5E7EB;border:none;cursor:pointer;position:relative;transition:background .2s}
+.toggle.on{background:var(--mint)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(20px)}
+
+/* CHILD AVATAR display */
+.child-profile-pill{display:flex;align-items:center;gap:8px;background:#F5F0FF;border-radius:12px;padding:6px 12px;margin-bottom:14px}
+.child-profile-pill .av{font-size:22px}
+.child-profile-pill .inf{font-size:12px;font-weight:700;color:var(--dark)}
+.child-profile-pill .sub{font-size:10px;color:var(--muted);font-weight:600}
+</style>
+
+<div id="app">
+
+<!-- ===== ONBOARDING ===== -->
+<div id="onboarding" class="ob-wrap">
+  <div class="ob-header">
+    <div class="logo">⭐ KiddoPlan</div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted)" id="ob-step-lbl">Langkah 1 dari 4</div>
+  </div>
+  <div class="ob-body">
+    <div class="ob-step-ind">
+      <div class="ob-dot active" id="d0"></div>
+      <div class="ob-dot" id="d1"></div>
+      <div class="ob-dot" id="d2"></div>
+      <div class="ob-dot" id="d3"></div>
+    </div>
+
+    <!-- STEP 1: Nama -->
+    <div id="ob1">
+      <div style="text-align:center;font-size:52px;margin-bottom:12px">👋</div>
+      <div class="ob-title">Halo! Siapa namamu?</div>
+      <div class="ob-sub">Kami akan membuat jadwal khusus untukmu!</div>
+      <div class="ob-field">
+        <label class="ob-label">Nama Anak</label>
+        <input class="ob-input" id="inp-name" placeholder="Contoh: Nara, Rafi, Zara..." maxlength="20">
+      </div>
+      <div class="ob-field">
+        <label class="ob-label">Nama Panggilan (opsional)</label>
+        <input class="ob-input" id="inp-nick" placeholder="Panggilan kesukaan...">
+      </div>
+      <button class="ob-next" onclick="obNext(1)">Lanjut →</button>
+    </div>
+
+    <!-- STEP 2: Usia & Avatar -->
+    <div id="ob2" class="hidden">
+      <div style="text-align:center;font-size:52px;margin-bottom:12px">🎂</div>
+      <div class="ob-title">Berapa usiamu?</div>
+      <div class="ob-sub">Kegiatan akan disesuaikan dengan usiamu</div>
+      <div class="ob-field">
+        <label class="ob-label">Pilih kelompok usia</label>
+        <div class="age-btns">
+          <button class="age-btn" onclick="selAge('5-7',this)">5–7 tahun</button>
+          <button class="age-btn" onclick="selAge('8-10',this)">8–10 tahun</button>
+          <button class="age-btn" onclick="selAge('11-13',this)">11–13 tahun</button>
+          <button class="age-btn" onclick="selAge('14+',this)">14+ tahun</button>
+        </div>
+      </div>
+      <div class="ob-field">
+        <label class="ob-label">Pilih avatarmu</label>
+        <div class="avatar-grid">
+          <button class="av-btn sel" onclick="selAv('🦁',this)">🦁</button>
+          <button class="av-btn" onclick="selAv('🐼',this)">🐼</button>
+          <button class="av-btn" onclick="selAv('🦊',this)">🦊</button>
+          <button class="av-btn" onclick="selAv('🐸',this)">🐸</button>
+          <button class="av-btn" onclick="selAv('🐧',this)">🐧</button>
+          <button class="av-btn" onclick="selAv('🦄',this)">🦄</button>
+          <button class="av-btn" onclick="selAv('🐯',this)">🐯</button>
+          <button class="av-btn" onclick="selAv('🐻',this)">🐻</button>
+        </div>
+      </div>
+      <button class="ob-next" onclick="obNext(2)">Lanjut →</button>
+      <button class="ob-back" onclick="obBack(2)">← Kembali</button>
+    </div>
+
+    <!-- STEP 3: Minat -->
+    <div id="ob3" class="hidden">
+      <div style="text-align:center;font-size:52px;margin-bottom:12px">🌈</div>
+      <div class="ob-title">Kamu suka apa?</div>
+      <div class="ob-sub">Pilih semua minat yang kamu sukai! (min. 2)</div>
+      <div class="interest-grid" id="int-grid">
+        <div class="int-card" onclick="toggleInt(this,'buku')"><span>📚</span><p>Membaca Buku</p></div>
+        <div class="int-card" onclick="toggleInt(this,'seni')"><span>🎨</span><p>Seni & Menggambar</p></div>
+        <div class="int-card" onclick="toggleInt(this,'musik')"><span>🎵</span><p>Musik & Nyanyi</p></div>
+        <div class="int-card" onclick="toggleInt(this,'olahraga')"><span>⚽</span><p>Olahraga</p></div>
+        <div class="int-card" onclick="toggleInt(this,'masak')"><span>🍳</span><p>Memasak & Baking</p></div>
+        <div class="int-card" onclick="toggleInt(this,'sains')"><span>🔬</span><p>Sains & Eksperimen</p></div>
+        <div class="int-card" onclick="toggleInt(this,'coding')"><span>💻</span><p>Coding & Teknologi</p></div>
+        <div class="int-card" onclick="toggleInt(this,'alam')"><span>🌿</span><p>Alam & Berkebun</p></div>
+      </div>
+      <button class="ob-next" onclick="obNext(3)" style="margin-top:14px">Lanjut →</button>
+      <button class="ob-back" onclick="obBack(3)">← Kembali</button>
+    </div>
+
+    <!-- STEP 4: Siap -->
+    <div id="ob4" class="hidden">
+      <div style="text-align:center;font-size:56px;margin-bottom:12px" id="ob4-av">🦁</div>
+      <div class="ob-title" id="ob4-title">Hore, siap mulai!</div>
+      <div class="ob-sub" id="ob4-sub">Jadwal spesial sudah disiapkan untukmu</div>
+      <div class="card" id="ob4-summary" style="margin-bottom:16px;text-align:left">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">PROFIL KAMU</div>
+        <div style="display:flex;flex-direction:column;gap:6px" id="ob4-rows"></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;background:#EFFFFA;border:2px solid var(--mint)">
+        <div style="font-size:13px;font-weight:700;color:#0F6E56;margin-bottom:6px">🎯 Kegiatan yang disiapkan untukmu:</div>
+        <div id="ob4-acts" style="display:flex;flex-direction:column;gap:5px"></div>
+      </div>
+      <button class="ob-next" style="background:var(--mint)" onclick="finishOnboarding()">🚀 Mulai Petualangan!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="main-app" class="hidden">
+
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <div class="nav-logo">⭐ KiddoPlan</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-child" onclick="switchMode('child')">👧 Anak</button>
+      <button class="nav-tab" id="tab-parent" onclick="switchMode('parent')">👨‍👩‍👧 Ortu</button>
+    </div>
+  </div>
+
+  <!-- CHILD MODE -->
+  <div id="child-mode">
+    <!-- HOME -->
+    <div id="sc-home" class="screen active">
+      <div class="greeting-box">
+        <div>
+          <h2 id="g-name">Hei, Bintang! 🌟</h2>
+          <p id="g-date">Hari ini</p>
+          <p style="color:rgba(255,255,255,.8);font-size:11px;margin-top:4px" id="g-mood"></p>
+        </div>
+        <div class="stars-box">
+          <div class="n" id="g-stars">0</div>
+          <div class="l">⭐ Bintang</div>
+        </div>
+      </div>
+      <div class="prog-card">
+        <div style="font-size:13px;font-weight:700;color:var(--dark)">🎯 Progress Hari Ini</div>
+        <div class="prog-bar-bg"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-align:right" id="prog-txt">0 dari 0</div>
+      </div>
+      <div class="child-profile-pill" id="profile-pill" style="display:none">
+        <div class="av" id="pp-av">🦁</div>
+        <div>
+          <div class="inf" id="pp-name">Nama Anak</div>
+          <div class="sub" id="pp-info">Usia · Minat</div>
+        </div>
+      </div>
+      <div class="sec-lbl">📅 Kegiatan Hari Ini</div>
+      <div id="task-list"></div>
+      <div class="sec-lbl">🏆 Lencana Diraih</div>
+      <div class="bdg-grid" id="badge-list"></div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div id="sc-schedule" class="screen">
+      <div class="hero-card" style="background:#FF6B6B">
+        <h2>📅 Jadwal Lengkap</h2>
+        <p>Ketuk kegiatan untuk mulai worksheet!</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="sched-grid"></div>
+    </div>
+
+    <!-- REWARDS -->
+    <div id="sc-rewards" class="screen">
+      <div class="hero-card" style="background:var(--purple)">
+        <h2>🏆 Koleksi Hadiah</h2>
+        <p id="rew-stars-lbl">0 bintang terkumpul</p>
+        <div style="font-size:28px;font-weight:900;margin-top:8px;color:#fff" id="rew-stars-big">0 ⭐</div>
+      </div>
+      <div class="sec-lbl">🎖 Level Pencapaian</div>
+      <div id="level-list"></div>
+      <div class="sec-lbl">🏅 Semua Lencana</div>
+      <div class="bdg-grid" id="all-badges"></div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bot-nav">
+      <button class="bnav active" onclick="showTab('home',this)"><span>🏠</span>Beranda</button>
+      <button class="bnav" onclick="showTab('schedule',this)"><span>📅</span>Jadwal</button>
+      <button class="bnav" onclick="showTab('rewards',this)"><span>🏆</span>Hadiah</button>
+    </div>
+  </div>
+
+  <!-- PARENT MODE -->
+  <div id="parent-mode" class="hidden screen active" style="padding:14px 14px 30px">
+    <!-- TABS -->
+    <div class="cs-tab-row">
+      <button class="cs-tab active" onclick="parentTab('dashboard',this)">📊 Dashboard</button>
+      <button class="cs-tab" onclick="parentTab('custom',this)">⚙️ Atur Jadwal</button>
+      <button class="cs-tab" onclick="parentTab('notes',this)">📝 Catatan</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="pt-dashboard">
+      <div class="hero-card" style="background:var(--dark)">
+        <h2>Dashboard Orang Tua</h2>
+        <p>Pantau perkembangan si kecil</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><span class="stat-n" style="color:var(--sky)" id="ps-done">0/0</span><div class="stat-l">Tugas Selesai</div></div>
+        <div class="stat-box"><span class="stat-n" style="color:#D4930A" id="ps-stars">0⭐</span><div class="stat-l">Total Bintang</div></div>
+        <div class="stat-box"><span class="stat-n" style="color:var(--mint)">85%</span><div class="stat-l">Konsistensi</div></div>
+        <div class="stat-box"><span class="stat-n" style="color:var(--coral)">4</span><div class="stat-l">Lencana</div></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">📈 7 Hari Terakhir</div>
+        <div class="week-bars" id="week-bars"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">📋 Log Hari Ini</div>
+        <div id="log-list"></div>
+      </div>
+      <div class="card" id="child-info-card">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">👤 Profil Anak</div>
+        <div id="child-info-rows"></div>
+      </div>
+    </div>
+
+    <!-- CUSTOM SCHEDULE -->
+    <div id="pt-custom" class="hidden">
+      <div class="hero-card" style="background:var(--purple)">
+        <h2>⚙️ Atur Jadwal Anak</h2>
+        <p>Tambah, edit, atau hapus kegiatan bebas</p>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px" id="cs-subtitle">Jadwal aktif untuk si kecil</div>
+      <div id="custom-list"></div>
+      <button class="add-sched-btn" onclick="openAddModal(null)">＋ Tambah Kegiatan Baru</button>
+      <div style="margin-top:12px;padding:12px;background:#FFF8E6;border-radius:12px;font-size:12px;font-weight:600;color:#854F0B">
+        💡 Tip: Kegiatan di sini akan langsung muncul di jadwal anak. Atur waktu yang sesuai dengan rutinitas keluarga!
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="pt-notes" class="hidden">
+      <div class="hero-card" style="background:var(--mint);color:var(--dark)">
+        <h2>📝 Catatan Perkembangan</h2>
+        <p>Rekam momen & kemajuan si kecil</p>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:8px">Catatan Baru</div>
+        <textarea class="note-input" id="note-inp" placeholder="Tuliskan perkembangan, catatan khusus, atau pencapaian si kecil hari ini..."></textarea>
+        <button class="save-btn" onclick="saveNote()">💾 Simpan Catatan</button>
+      </div>
+      <div id="saved-notes"></div>
+      <div class="card" style="margin-top:0">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">⚙️ Pengaturan</div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
+            <span style="font-size:13px;font-weight:600;color:var(--dark)">🔔 Pengingat Kegiatan</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0EEFF">
+            <span style="font-size:13px;font-weight:600;color:var(--dark)">🎵 Suara Reward</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <span style="font-size:13px;font-weight:600;color:var(--dark)">🔒 Kunci Mode Ortu</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+        <button onclick="resetApp()" style="width:100%;margin-top:12px;padding:11px;background:#FFF0F0;color:#C62828;border:2px solid #FFD4D4;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer">🔄 Reset & Mulai Ulang dari Awal</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-app -->
+
+<script>
+let profile = {name:'',nick:'',age:'',avatar:'🦁',interests:[],ageGroup:''};
+let totalStars = 0;
+let obStep = 1;
+let selAvatar = '🦁';
+let selAgeVal = '';
+let selInterests = [];
+let savedNotes = [];
+
+const interestTaskMap = {
+  buku:[{name:'Membaca Buku',icon:'📚',bg:'#F0EEFF',pts:15,ws:true}],
+  seni:[{name:'Menggambar & Mewarnai',icon:'🎨',bg:'#FFF0F0',pts:15,ws:true}],
+  musik:[{name:'Latihan Musik / Nyanyi',icon:'🎵',bg:'#FFF8F0',pts:15,ws:true}],
+  olahraga:[{name:'Olahraga & Bermain',icon:'⚽',bg:'#EFFFFA',pts:10,ws:false}],
+  masak:[{name:'Memasak Bersama',icon:'🍳',bg:'#FFFBF0',pts:15,ws:true}],
+  sains:[{name:'Eksperimen Sains',icon:'🔬',bg:'#F0EEFF',pts:20,ws:true}],
+  coding:[{name:'Belajar Coding',icon:'💻',bg:'#EEF4FF',pts:20,ws:true}],
+  alam:[{name:'Berkebun & Alam',icon:'🌿',bg:'#EFFFFA',pts:10,ws:false}],
+};
+
+const baseTasksByAge = {
+  '5-7':[
+    {name:'Bangun & Sholat Subuh',icon:'🕌',bg:'#EEF4FF',pts:10,ws:false,time:'05.30'},
+    {name:'Sarapan Sehat',icon:'🥣',bg:'#FFF8E6',pts:5,ws:false,time:'07.00'},
+    {name:'Istirahat Siang',icon:'😴',bg:'#F0EEFF',pts:5,ws:false,time:'13.00'},
+  ],
+  '8-10':[
+    {name:'Bangun & Sholat Subuh',icon:'🕌',bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
+    {name:'Sarapan & Siap Hari',icon:'🍳',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
+    {name:'Belajar Mandiri',icon:'📝',bg:'#EFFFFA',pts:15,ws:true,time:'09.00'},
+  ],
+  '11-13':[
+    {name:'Sholat & Olahraga Pagi',icon:'🏃',bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
+    {name:'Sarapan Bergizi',icon:'🥗',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
+    {name:'Belajar Intensif',icon:'📖',bg:'#EFFFFA',pts:20,ws:true,time:'08.00'},
+  ],
+  '14+':[
+    {name:'Sholat & Olahraga',icon:'🏃',bg:'#EEF4FF',pts:10,ws:false,time:'04.45'},
+    {name:'Sarapan & Perencanaan',icon:'📋',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
+    {name:'Studi Mandiri',icon:'🎓',bg:'#EFFFFA',pts:25,ws:true,time:'08.00'},
+  ]
+};
+
+let tasks = [];
+let customTasks = null;
+
+const badges = [
+  {e:'🌅',n:'Pagi Semangat',earned:true},{e:'📖',n:'Kutu Buku',earned:true},
+  {e:'🎨',n:'Seniman Cilik',earned:true},{e:'⚽',n:'Aktif Bergerak',earned:false},
+  {e:'🌟',n:'Bintang Super',earned:false},{e:'👑',n:'Raja Jadwal',earned:false},
+];
+
+const weekD=[{d:'Sen',p:100},{d:'Sel',p:86},{d:'Rab',p:100},{d:'Kam',p:57},{d:'Jum',p:71},{d:'Sab',p:100},{d:'Min',p:43}];
+
+function obNext(step){
+  if(step===1){
+    const n=document.getElementById('inp-name').value.trim();
+    if(!n){alert('Masukkan nama dulu ya! 😊');return;}
+    profile.name=n;
+    profile.nick=document.getElementById('inp-nick').value.trim()||n;
+  }
+  if(step===2){
+    if(!selAgeVal){alert('Pilih kelompok usia dulu! 🎂');return;}
+    profile.age=selAgeVal; profile.avatar=selAvatar;
+  }
+  if(step===3){
+    if(selInterests.length<2){alert('Pilih minimal 2 minat ya! 🌈');return;}
+    profile.interests=[...selInterests];
+    buildOb4();
+  }
+  document.getElementById('ob'+step).classList.add('hidden');
+  obStep=step+1;
+  document.getElementById('ob'+obStep).classList.remove('hidden');
+  updateDots();
+  document.getElementById('ob-step-lbl').textContent='Langkah '+obStep+' dari 4';
+}
+
+function obBack(step){
+  document.getElementById('ob'+step).classList.add('hidden');
+  obStep=step-1;
+  document.getElementById('ob'+obStep).classList.remove('hidden');
+  updateDots();
+  document.getElementById('ob-step-lbl').textContent='Langkah '+obStep+' dari 4';
+}
+
+function updateDots(){
+  for(let i=0;i<4;i++){
+    document.getElementById('d'+i).classList.toggle('active',i<obStep);
+  }
+}
+
+function selAge(v,btn){
+  selAgeVal=v; profile.ageGroup=v;
+  document.querySelectorAll('.age-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function selAv(v,btn){
+  selAvatar=v;
+  document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function toggleInt(el,key){
+  el.classList.toggle('sel');
+  const idx=selInterests.indexOf(key);
+  if(idx>=0) selInterests.splice(idx,1);
+  else selInterests.push(key);
+}
+
+function buildOb4(){
+  document.getElementById('ob4-av').textContent=profile.avatar;
+  document.getElementById('ob4-title').textContent='Hore, '+profile.nick+'! 🎉';
+  const intLabels={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam'};
+  const rows=document.getElementById('ob4-rows');
+  rows.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #F0EEFF"><span style="color:var(--muted);font-weight:600">Nama</span><strong>${profile.name}</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #F0EEFF"><span style="color:var(--muted);font-weight:600">Usia</span><strong>${profile.age} tahun</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span style="color:var(--muted);font-weight:600">Minat</span><strong>${profile.interests.map(i=>intLabels[i]).join(', ')}</strong></div>
+  `;
+  const genTasks=generateTasks();
+  const acts=document.getElementById('ob4-acts');
+  acts.innerHTML=genTasks.slice(0,5).map(t=>`
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#0F6E56">
+      <span>${t.icon}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--mint);font-weight:700">+${t.pts}⭐</span>
+    </div>
+  `).join('')+(genTasks.length>5?`<div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:4px">...dan ${genTasks.length-5} kegiatan lainnya</div>`:'');
+}
+
+function generateTasks(){
+  const age=profile.ageGroup||'8-10';
+  const base=(baseTasksByAge[age]||baseTasksByAge['8-10']).map((t,i)=>({...t,id:i+1,done:i<1,time:t.time+' - '+(String(parseInt(t.time)+1).padStart(2,'0'))+'.00'}));
+  let intTasks=[];
+  profile.interests.forEach((key,i)=>{
+    if(interestTaskMap[key]){
+      intTasks.push({...interestTaskMap[key][0],id:base.length+i+1,done:false,
+        time:(String(10+i)).padStart(2,'0')+'.00 - '+(String(11+i)).padStart(2,'0')+'.00'});
+    }
+  });
+  return [...base,...intTasks.slice(0,4)];
+}
+
+function finishOnboarding(){
+  tasks=generateTasks();
+  customTasks=[...tasks];
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('main-app').classList.remove('hidden');
+  renderAll();
+  saveState();
+}
+
+function renderAll(){
+  const nick=profile.nick||profile.name||'Bintang';
+  const av=profile.avatar||'⭐';
+  document.getElementById('g-name').textContent='Hei, '+nick+'! '+av;
+  const now=new Date();
+  const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  document.getElementById('g-date').textContent=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  const moodByAge={'5-7':'Hayo semangat bermain dan belajar! 🌈','8-10':'Jadwal serumu sudah siap! 🚀','11-13':'Ayo raih semua bintangmu! 💪','14+':'Konsisten adalah kunci sukses! 🎯'};
+  document.getElementById('g-mood').textContent=moodByAge[profile.ageGroup]||'Semangat hari ini!';
+
+  const pill=document.getElementById('profile-pill');
+  if(profile.name){
+    pill.style.display='flex';
+    document.getElementById('pp-av').textContent=profile.avatar;
+    document.getElementById('pp-name').textContent=profile.name+(profile.nick&&profile.nick!==profile.name?' ('+profile.nick+')':'');
+    document.getElementById('pp-info').textContent=(profile.age||'?')+' tahun · '+profile.interests.slice(0,2).join(', ');
+  }
+
+  renderTasks();
+  renderSchedGrid();
+  renderBadges();
+  renderLevels();
+  updateProgress();
+  renderParentDash();
+  renderCustomList();
+}
+
+function renderTasks(){
+  const t=customTasks||tasks;
+  document.getElementById('task-list').innerHTML=t.map(tk=>`
+    <div class="task-card ${tk.done?'done':''}" onclick="handleTask(${tk.id})">
+      <div class="t-icon" style="background:${tk.bg}">${tk.icon}</div>
+      <div style="flex:1">
+        <div class="t-name" style="${tk.done?'text-decoration:line-through;color:#9CA3AF':''}">${tk.name}</div>
+        <div class="t-time">⏰ ${tk.time||'Fleksibel'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <span class="t-pts">+${tk.pts}⭐</span>
+        <div class="t-chk ${tk.done?'done':''}">${tk.done?'✓':''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSchedGrid(){
+  const t=customTasks||tasks;
+  document.getElementById('sched-grid').innerHTML=t.map(tk=>`
+    <div style="background:var(--white);border-radius:14px;padding:12px;cursor:pointer;border:2px solid ${tk.done?'var(--mint)':'transparent'};background:${tk.done?'#EFFFFA':'var(--white)'}" onclick="handleTask(${tk.id})">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">⏰ ${tk.time||''}</div>
+      <div style="font-size:24px;margin-bottom:3px">${tk.icon}</div>
+      <div style="font-size:12px;font-weight:800;color:var(--dark)">${tk.name}</div>
+      <div style="font-size:11px;font-weight:700;color:#D4930A;margin-top:3px">+${tk.pts}⭐ ${tk.done?'✅':''}</div>
+    </div>
+  `).join('');
+}
+
+function renderBadges(){
+  document.getElementById('badge-list').innerHTML=badges.filter(b=>b.earned).map(b=>`
+    <div class="bdg earned"><span>${b.e}</span><p>${b.n}</p></div>`).join('');
+  document.getElementById('all-badges').innerHTML=badges.map(b=>`
+    <div class="bdg ${b.earned?'earned':'locked'}"><span>${b.e}</span><p>${b.n}</p></div>`).join('');
+}
+
+function renderLevels(){
+  const levels=[
+    {n:'🌱 Pemula',r:'0–30⭐',c:'#E8F5E9',tc:'#2E7D32',ok:true},
+    {n:'⭐ Berbakat',r:'31–60⭐',c:'#FFF8E6',tc:'#B7860A',ok:true},
+    {n:'🚀 Hebat',r:'61–100⭐',c:'#EEF4FF',tc:'#1565C0',ok:false},
+    {n:'👑 Luar Biasa',r:'101+⭐',c:'#F5E6FF',tc:'#6A1B9A',ok:false},
+  ];
+  document.getElementById('level-list').innerHTML=levels.map(l=>`
+    <div style="background:${l.c};border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:2px solid ${l.ok?l.tc:'transparent'};opacity:${l.ok?1:.5}">
+      <div style="font-size:26px">${l.n.split(' ')[0]}</div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:${l.tc}">${l.n.split(' ').slice(1).join(' ')}</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600">${l.r} ${l.ok?'✅ Dicapai!':''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function updateProgress(){
+  const t=customTasks||tasks;
+  const done=t.filter(x=>x.done).length;
+  const pct=t.length?Math.round(done/t.length*100):0;
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('prog-txt').textContent=done+' dari '+t.length+' kegiatan selesai';
+  document.getElementById('g-stars').textContent=totalStars;
+  document.getElementById('rew-stars-big').textContent=totalStars+' ⭐';
+  document.getElementById('rew-stars-lbl').textContent=totalStars+' bintang terkumpul';
+  const psDone=document.getElementById('ps-done');
+  const psStars=document.getElementById('ps-stars');
+  if(psDone) psDone.textContent=done+'/'+t.length;
+  if(psStars) psStars.textContent=totalStars+'⭐';
+}
+
+function handleTask(id){
+  const t=(customTasks||tasks).find(x=>x.id===id);
+  if(!t) return;
+  if(t.ws && !t.done) showWS(t);
+  else if(!t.done) completeTask(t);
+}
+
+function showWS(task){
+  const app=document.getElementById('main-app');
+  const ol=document.createElement('div');
+  ol.className='overlay'; ol.id='ws-ol';
+  ol.innerHTML=`<div class="ws-panel">
+    <div class="ws-hd"><h3>${task.icon} ${task.name}</h3><button class="ws-close" onclick="closeWS()">✕</button></div>
+    <div style="background:#F0EEFF;border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12px;font-weight:700;color:var(--purple)">
+      Selesaikan worksheet ini untuk mendapat +${task.pts}⭐!</div>
+    <div class="ws-q"><p>1. Apa yang kamu pelajari/lakukan hari ini?</p>
+      <textarea class="ws-inp" rows="2" placeholder="Ceritakan kegiatanmu..."></textarea></div>
+    <div class="ws-q"><p>2. Bagian paling seru dari kegiatan ini:</p>
+      <div><div class="ws-opt"><input type="radio" name="q2" id="q2a"><label for="q2a">Sangat menyenangkan! 😄</label></div>
+      <div class="ws-opt"><input type="radio" name="q2" id="q2b"><label for="q2b">Lumayan seru 🙂</label></div>
+      <div class="ws-opt"><input type="radio" name="q2" id="q2c"><label for="q2c">Perlu belajar lagi 💪</label></div></div></div>
+    <div class="ws-q"><p>3. Apa yang ingin kamu coba besok?</p>
+      <textarea class="ws-inp" rows="2" placeholder="Tuliskan idemu..."></textarea></div>
+    <button class="ws-submit" onclick="submitWS(${task.id})">✅ Selesai! Kumpulkan (+${task.pts}⭐)</button>
+  </div>`;
+  app.appendChild(ol);
+}
+
+function closeWS(){const o=document.getElementById('ws-ol');if(o)o.remove();}
+
+function submitWS(id){
+  closeWS();
+  const t=(customTasks||tasks).find(x=>x.id===id);
+  if(t&&!t.done) completeTask(t);
+}
+
+function completeTask(task){
+  task.done=true; totalStars+=task.pts;
+  renderTasks(); renderSchedGrid(); updateProgress();
+  showReward(task);
+  saveState();
+}
+
+function showReward(task){
+  const app=document.getElementById('main-app');
+  const p=document.createElement('div');
+  p.className='rwd-overlay'; p.id='rwd-pop';
+  const ems=['🌟','⭐','🎉','🏆','✨'];
+  const msgs=['Keren Banget!','Luar Biasa!','Hebat!','Semangat!','Mantap!'];
+  const em=ems[Math.floor(Math.random()*5)];
+  const msg=msgs[Math.floor(Math.random()*5)];
+  p.innerHTML=`<div class="rwd-box">
+    <div class="confrow"><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div></div>
+    <span class="rwd-em">${em}</span>
+    <h3>${msg}</h3>
+    <p>Kamu selesaikan<br><strong>${task.name}</strong></p>
+    <span class="rwd-pts">+${task.pts} ⭐</span>
+    <button class="rwd-ok" onclick="closeReward()">Lanjut! 🚀</button>
+  </div>`;
+  app.appendChild(p);
+}
+
+function closeReward(){const p=document.getElementById('rwd-pop');if(p)p.remove();}
+
+function renderParentDash(){
+  const bars=document.getElementById('week-bars');
+  if(bars) bars.innerHTML=weekD.map(d=>`
+    <div class="bar-w">
+      <div class="bar-b" style="height:${Math.max(4,d.p*.65)}px;background:${d.p===100?'var(--mint)':'var(--sky)'}"></div>
+      <div class="bar-d">${d.d}</div>
+    </div>`).join('');
+
+  const t=customTasks||tasks;
+  const log=document.getElementById('log-list');
+  if(log) log.innerHTML=t.map(tk=>`
+    <div class="log-item">
+      <div class="log-dot" style="background:${tk.done?'var(--mint)':'#E5E7EB'}"></div>
+      <div class="log-t">${tk.icon} ${tk.name}</div>
+      <div class="log-tm">${tk.done?'✅ Selesai':'⏳ Menunggu'}</div>
+    </div>`).join('');
+
+  const ci=document.getElementById('child-info-rows');
+  if(ci && profile.name) ci.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="font-size:36px">${profile.avatar}</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:var(--dark)">${profile.name}</div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600">${profile.age} tahun · ${profile.ageGroup}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">MINAT</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${profile.interests.map(i=>{
+      const m={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam'};
+      return '<span style="background:#F0EEFF;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--purple)">'+m[i]+'</span>';
+    }).join('')}</div>`;
+}
+
+let editingId = null;
+let pickedEmoji = '📌';
+const emojiOpts=['📌','⭐','📚','🎨','🎵','⚽','🍳','🔬','💻','🌿','🕌','📝','🎮','🏃','🌙','🎭'];
+
+function renderCustomList(){
+  const t=customTasks||tasks;
+  const cs=document.getElementById('cs-subtitle');
+  if(cs && profile.name) cs.textContent='Jadwal aktif untuk '+profile.nick;
+  const list=document.getElementById('custom-list');
+  if(!list) return;
+  list.innerHTML=t.map(tk=>`
+    <div class="sched-item">
+      <div class="s-icon">${tk.icon}</div>
+      <div class="s-info">
+        <div class="s-name">${tk.name}</div>
+        <div class="s-time">⏰ ${tk.time||'Fleksibel'} · +${tk.pts}⭐</div>
+      </div>
+      <div class="s-actions">
+        <button class="icon-btn edit" onclick="openAddModal(${tk.id})" title="Edit">✏️</button>
+        <button class="icon-btn del" onclick="deleteTask(${tk.id})" title="Hapus">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAddModal(id){
+  editingId=id;
+  const app=document.getElementById('main-app');
+  const existing = id ? (customTasks||tasks).find(t=>t.id===id) : null;
+  pickedEmoji = existing?existing.icon:'📌';
+  const ol=document.createElement('div');
+  ol.className='modal-overlay'; ol.id='add-modal';
+  ol.innerHTML=`<div class="modal-box">
+    <h3>${id?'✏️ Edit Kegiatan':'➕ Tambah Kegiatan Baru'}</h3>
+    <div class="m-field">
+      <label class="m-label">Nama Kegiatan</label>
+      <input class="m-input" id="m-name" placeholder="Contoh: Membaca Buku" value="${existing?existing.name:''}">
+    </div>
+    <div class="m-row">
+      <div class="m-field">
+        <label class="m-label">Waktu Mulai</label>
+        <input class="m-input" id="m-start" type="time" value="${existing&&existing.time?existing.time.split(' - ')[0].replace('.',':'):'08:00'}">
+      </div>
+      <div class="m-field">
+        <label class="m-label">Waktu Selesai</label>
+        <input class="m-input" id="m-end" type="time" value="${existing&&existing.time?existing.time.split(' - ')[1].replace('.',':'):'09:00'}">
+      </div>
+    </div>
+    <div class="m-row">
+      <div class="m-field">
+        <label class="m-label">Poin Bintang</label>
+        <select class="m-select" id="m-pts">
+          <option ${existing&&existing.pts===5?'selected':''} value="5">5 ⭐ Mudah</option>
+          <option ${(!existing||existing.pts===10)?'selected':''} value="10">10 ⭐ Normal</option>
+          <option ${existing&&existing.pts===15?'selected':''} value="15">15 ⭐ Bagus</option>
+          <option ${existing&&existing.pts===20?'selected':''} value="20">20 ⭐ Hebat</option>
+          <option ${existing&&existing.pts===25?'selected':''} value="25">25 ⭐ Luar Biasa</option>
+        </select>
+      </div>
+      <div class="m-field">
+        <label class="m-label">Warna Kartu</label>
+        <select class="m-select" id="m-bg">
+          <option value="#EEF4FF">💙 Biru</option>
+          <option value="#EFFFFA">💚 Hijau</option>
+          <option value="#FFF8E6">💛 Kuning</option>
+          <option value="#FFF0F0">❤️ Merah</option>
+          <option value="#F0EEFF">💜 Ungu</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-field">
+      <label class="m-label">Ikon Kegiatan</label>
+      <div class="emoji-pick" id="emoji-pick">
+        ${emojiOpts.map(e=>`<button class="em-btn${e===pickedEmoji?' sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('')}
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeModal()">Batal</button>
+      <button class="m-save" onclick="saveTask()">💾 Simpan</button>
+    </div>
+  </div>`;
+  app.appendChild(ol);
+}
+
+function pickEmoji(e,btn){
+  pickedEmoji=e;
+  document.querySelectorAll('.em-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function closeModal(){const m=document.getElementById('add-modal');if(m)m.remove();}
+
+function saveTask(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){alert('Isi nama kegiatan dulu!');return;}
+  const start=document.getElementById('m-start').value.replace(':','.');
+  const end=document.getElementById('m-end').value.replace(':','.');
+  const pts=parseInt(document.getElementById('m-pts').value);
+  const bg=document.getElementById('m-bg').value;
+  const t=customTasks||(tasks);
+  if(editingId){
+    const idx=t.findIndex(x=>x.id===editingId);
+    if(idx>=0){t[idx].name=name;t[idx].time=start+' - '+end;t[idx].pts=pts;t[idx].bg=bg;t[idx].icon=pickedEmoji;}
+  } else {
+    const newId=Math.max(...t.map(x=>x.id),0)+1;
+    t.push({id:newId,name,icon:pickedEmoji,bg,pts,done:false,ws:false,time:start+' - '+end});
+    if(!customTasks) customTasks=[...t];
+  }
+  closeModal();
+  renderTasks(); renderSchedGrid(); renderCustomList(); updateProgress(); renderParentDash();
+  saveState();
+}
+
+function deleteTask(id){
+  if(!confirm('Hapus kegiatan ini?')) return;
+  const t=customTasks||tasks;
+  const idx=t.findIndex(x=>x.id===id);
+  if(idx>=0) t.splice(idx,1);
+  renderTasks(); renderSchedGrid(); renderCustomList(); updateProgress(); renderParentDash();
+  saveState();
+}
+
+function switchMode(mode){
+  document.getElementById('child-mode').classList.toggle('hidden',mode==='parent');
+  document.getElementById('parent-mode').classList.toggle('hidden',mode==='child');
+  document.getElementById('tab-child').classList.toggle('active',mode==='child');
+  document.getElementById('tab-parent').classList.toggle('active',mode==='parent');
+}
+
+function showTab(tab,btn){
+  document.querySelectorAll('#child-mode .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-'+tab).classList.add('active');
+  document.querySelectorAll('.bnav').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function parentTab(tab,btn){
+  ['dashboard','custom','notes'].forEach(t=>document.getElementById('pt-'+t).classList.add('hidden'));
+  document.getElementById('pt-'+tab).classList.remove('hidden');
+  document.querySelectorAll('.cs-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+let notesList=[];
+function saveNote(){
+  const v=document.getElementById('note-inp').value.trim();
+  if(!v) return;
+  notesList.unshift({text:v,date:new Date().toLocaleDateString('id-ID')});
+  document.getElementById('note-inp').value='';
+  renderNotes();
+  saveState();
+}
+function renderNotes(){
+  const c=document.getElementById('saved-notes');
+  c.innerHTML=notesList.map(n=>`
+    <div class="card" style="margin-bottom:8px;border-left:4px solid var(--mint);border-radius:0 14px 14px 0">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">${n.date}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--dark)">${n.text}</div>
+    </div>`).join('');
+}
+
+/* ===== PENYIMPANAN DATA (localStorage) ===== */
+const STORAGE_KEY='kiddoplan_v2';
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({
+      profile,
+      totalStars,
+      tasks:customTasks||tasks,
+      notesList,
+      onboarded:!!profile.name
+    }));
+  }catch(e){/* penyimpanan tidak tersedia */}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(!s||!s.onboarded||!s.profile||!s.profile.name) return false;
+    profile=s.profile;
+    totalStars=s.totalStars||0;
+    tasks=Array.isArray(s.tasks)?s.tasks:[];
+    customTasks=[...tasks];
+    notesList=Array.isArray(s.notesList)?s.notesList:[];
+    return true;
+  }catch(e){return false;}
+}
+function resetApp(){
+  if(!confirm('Hapus semua data dan mulai ulang dari awal?')) return;
+  try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+  location.reload();
+}
+
+/* Muat data tersimpan saat aplikasi dibuka */
+(function init(){
+  if(loadState()){
+    document.getElementById('onboarding').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    renderAll();
+    renderNotes();
+  }
+})();
+</script>
+</body>
+</html>
