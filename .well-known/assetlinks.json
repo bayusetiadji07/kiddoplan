@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.kiddoplan.twa",
+        "sha256_cert_fingerprints": ["93:B7:FE:42:E3:1E:3E:4B:9D:24:C8:D7:FA:4D:45:DB:67:56:98:C3:03:3B:14:D7:E0:15:D7:38:FC:2C:C2:62"]
+      }
+    }]
