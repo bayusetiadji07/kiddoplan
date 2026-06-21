@@ -311,6 +311,12 @@
         <div class="int-card" onclick="toggleInt(this,'sains')"><span>🔬</span><p>Sains & Eksperimen</p></div>
         <div class="int-card" onclick="toggleInt(this,'coding')"><span>💻</span><p>Coding & Teknologi</p></div>
         <div class="int-card" onclick="toggleInt(this,'alam')"><span>🌿</span><p>Alam & Berkebun</p></div>
+        <div class="int-card" onclick="toggleInt(this,'menulis')"><span>✍️</span><p>Menulis & Cerita</p></div>
+        <div class="int-card" onclick="toggleInt(this,'bahasa')"><span>🗣️</span><p>Belajar Bahasa</p></div>
+        <div class="int-card" onclick="toggleInt(this,'matematika')"><span>🔢</span><p>Matematika & Puzzle</p></div>
+        <div class="int-card" onclick="toggleInt(this,'robotik')"><span>🤖</span><p>Robotik & STEM</p></div>
+        <div class="int-card" onclick="toggleInt(this,'fotografi')"><span>📷</span><p>Fotografi</p></div>
+        <div class="int-card" onclick="toggleInt(this,'menari')"><span>💃</span><p>Menari & Gerak</p></div>
       </div>
       <button class="ob-next" onclick="obNext(3)" style="margin-top:14px">Lanjut →</button>
       <button class="ob-back" onclick="obBack(3)">← Kembali</button>
@@ -578,6 +584,12 @@ const interestTaskMap = {
   sains:[{name:'Eksperimen Sains',icon:'🔬',bg:'#F0EEFF',pts:20,ws:true}],
   coding:[{name:'Belajar Coding',icon:'💻',bg:'#EEF4FF',pts:20,ws:true}],
   alam:[{name:'Berkebun & Alam',icon:'🌿',bg:'#EFFFFA',pts:10,ws:false}],
+  menulis:[{name:'Menulis & Bercerita',icon:'✍️',bg:'#FFF8F0',pts:15,ws:true}],
+  bahasa:[{name:'Belajar Bahasa',icon:'🗣️',bg:'#EEF4FF',pts:15,ws:true}],
+  matematika:[{name:'Matematika & Puzzle',icon:'🔢',bg:'#F0EEFF',pts:20,ws:true}],
+  robotik:[{name:'Robotik & STEM',icon:'🤖',bg:'#EEF4FF',pts:20,ws:true}],
+  fotografi:[{name:'Fotografi',icon:'📷',bg:'#EFFFFA',pts:15,ws:true}],
+  menari:[{name:'Menari & Gerak',icon:'💃',bg:'#FFF0F0',pts:10,ws:false}],
 };
 
 /* Worksheet khusus per topik kegiatan — pertanyaan yang mendidik & spesifik.
@@ -624,6 +636,36 @@ const worksheets = {
     {type:'text', q:'Tuliskan satu hal penting yang kamu pahami hari ini.'},
     {type:'choice', q:'Seberapa paham kamu dengan materinya?', opts:['Sudah paham! 😄','Perlu latihan lagi 💪','Masih bingung 🤔']},
     {type:'text', q:'Satu pertanyaan yang ingin kamu tanyakan ke guru/orang tua?'},
+  ]},
+  menulis:{ title:'Pojok Penulis', intro:'Tunjukkan tulisanmu hari ini!', questions:[
+    {type:'text', q:'Apa yang kamu tulis hari ini? (cerita, puisi, jurnal, dll.)'},
+    {type:'text', q:'Tuliskan satu kalimat pembuka favoritmu dari tulisan itu.'},
+    {type:'choice', q:'Jenis tulisanmu hari ini:', opts:['Cerita/dongeng 📖','Puisi/pantun 🎼','Jurnal/pengalaman 📓']},
+    {type:'text', q:'Apa yang ingin kamu tulis berikutnya?'},
+  ]},
+  bahasa:{ title:'Pojok Bahasa', intro:'Belajar bahasa baru, yuk!', questions:[
+    {type:'text', q:'Bahasa apa yang kamu pelajari, dan kata/kalimat baru apa yang kamu dapat?'},
+    {type:'text', q:'Tulis artinya dalam bahasa Indonesia.'},
+    {type:'choice', q:'Yang kamu latih hari ini:', opts:['Kosakata baru 🔤','Berbicara/percakapan 🗨️','Mendengar/menonton 🎧']},
+    {type:'text', q:'Coba buat satu kalimat sendiri dengan kata baru itu.'},
+  ]},
+  matematika:{ title:'Lembar Matematika', intro:'Asah otak dengan angka!', questions:[
+    {type:'text', q:'Materi/soal apa yang kamu kerjakan hari ini?'},
+    {type:'text', q:'Tuliskan satu cara/langkah yang kamu pakai untuk menyelesaikannya.'},
+    {type:'choice', q:'Tingkat kesulitannya menurutmu:', opts:['Mudah 😎','Pas/menantang 🙂','Sulit, perlu latihan lagi 💪']},
+    {type:'text', q:'Soal seperti apa yang ingin kamu coba berikutnya?'},
+  ]},
+  robotik:{ title:'Log Robotik', intro:'Saatnya jadi insinyur cilik!', questions:[
+    {type:'text', q:'Apa yang kamu rakit atau program hari ini?'},
+    {type:'choice', q:'Fokusmu hari ini:', opts:['Merakit/mekanik 🔧','Sensor/input 📡','Memprogram gerak 🧠']},
+    {type:'text', q:'Adakah bagian yang tidak berjalan? Bagaimana kamu mengatasinya?'},
+    {type:'text', q:'Apa yang ingin kamu tambahkan ke proyekmu?'},
+  ]},
+  fotografi:{ title:'Album Foto', intro:'Ceritakan jepretanmu!', questions:[
+    {type:'text', q:'Apa objek/momen yang kamu foto hari ini?'},
+    {type:'text', q:'Kenapa kamu memilih memotret itu?'},
+    {type:'choice', q:'Yang kamu perhatikan saat memotret:', opts:['Cahaya ☀️','Sudut/komposisi 📐','Warna 🎨']},
+    {type:'text', q:'Apa yang ingin kamu coba foto berikutnya?'},
   ]},
   _default:{ title:'Refleksi Kegiatan', intro:'Ceritakan kegiatanmu!', questions:[
     {type:'text', q:'Apa yang kamu pelajari atau lakukan hari ini?'},
@@ -739,7 +781,7 @@ function toggleWorship(cb){
 function buildOb4(){
   document.getElementById('ob4-av').textContent=profile.avatar;
   document.getElementById('ob4-title').textContent='Hore, '+profile.nick+'! 🎉';
-  const intLabels={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam'};
+  const intLabels={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam','menulis':'✍️ Menulis','bahasa':'🗣️ Bahasa','matematika':'🔢 Matematika','robotik':'🤖 Robotik','fotografi':'📷 Fotografi','menari':'💃 Menari'};
   const rows=document.getElementById('ob4-rows');
   rows.innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #F0EEFF"><span style="color:var(--muted);font-weight:600">Nama</span><strong>${profile.name}</strong></div>
@@ -931,12 +973,17 @@ function closeWS(){const o=document.getElementById('ws-ol');if(o)o.remove();}
 
 function submitWS(id){
   const t=(customTasks||tasks).find(x=>x.id===id);
-  const answers=t?collectWSAnswers(t):null;
-  closeWS();
-  if(t&&!t.done){
-    if(answers) saveReflection(t,answers);
-    completeTask(t);
+  if(!t){ closeWS(); return; }
+  const answers=collectWSAnswers(t);
+  // wajib diisi: semua pertanyaan harus terjawab, kalau tidak → belum terhitung selesai
+  const incomplete = !answers || answers.some(a=>!a.a || !a.a.trim());
+  if(incomplete){
+    sfx('tap');
+    alert('Isi dulu semua jawabannya ya, supaya tugasnya terhitung selesai! ✍️');
+    return; // panel tetap terbuka, tugas TIDAK ditandai selesai
   }
+  closeWS();
+  if(!t.done){ saveReflection(t,answers); completeTask(t); }
 }
 
 /* Baca jawaban dari panel worksheet yang sedang terbuka */
@@ -1070,7 +1117,7 @@ function renderParentDash(){
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px">MINAT</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">${profile.interests.map(i=>{
-      const m={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam'};
+      const m={'buku':'📚 Membaca','seni':'🎨 Seni','musik':'🎵 Musik','olahraga':'⚽ Olahraga','masak':'🍳 Memasak','sains':'🔬 Sains','coding':'💻 Coding','alam':'🌿 Alam','menulis':'✍️ Menulis','bahasa':'🗣️ Bahasa','matematika':'🔢 Matematika','robotik':'🤖 Robotik','fotografi':'📷 Fotografi','menari':'💃 Menari'};
       return '<span style="background:#F0EEFF;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--purple)">'+m[i]+'</span>';
     }).join('')}</div>`;
 }
