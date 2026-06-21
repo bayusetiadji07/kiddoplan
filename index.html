@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KiddoPlan</title>
+<title>Kiddio Star</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -198,7 +198,7 @@
 <div id="login-screen" class="ob-wrap" style="align-items:center;justify-content:center">
   <div style="text-align:center;padding:24px;max-width:340px">
     <div style="font-size:64px;margin-bottom:6px">⭐</div>
-    <div style="font-size:28px;font-weight:900;color:var(--dark);margin-bottom:8px">KiddoPlan</div>
+    <div style="font-size:28px;font-weight:900;color:var(--dark);margin-bottom:8px">Kiddio Star</div>
     <div style="font-size:14px;color:var(--muted);font-weight:600;line-height:1.5;margin-bottom:28px">Jadwal seru penuh bintang untuk si kecil.<br>Masuk untuk menyimpan & menyinkronkan data di semua perangkat.</div>
     <button onclick="loginGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#fff;border:2px solid #E8E4FF;border-radius:14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;color:var(--dark);cursor:pointer">
       <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.4 1.1 7.3 2.8l5.7-5.7C33.6 6.1 29 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c2.8 0 5.4 1.1 7.3 2.8l5.7-5.7C33.6 6.1 29 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35 26.7 36 24 36c-5.3 0-9.7-3.6-11.3-8.4l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C41.4 35.7 44 30.3 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
@@ -211,7 +211,7 @@
 <!-- ===== ONBOARDING ===== -->
 <div id="onboarding" class="ob-wrap hidden">
   <div class="ob-header">
-    <div class="logo">⭐ KiddoPlan</div>
+    <div class="logo">⭐ Kiddio Star</div>
     <div style="font-size:12px;font-weight:700;color:var(--muted)" id="ob-step-lbl">Langkah 1 dari 4</div>
   </div>
   <div class="ob-body">
@@ -318,7 +318,7 @@
 
   <!-- TOP NAV -->
   <div class="top-nav">
-    <div class="nav-logo">⭐ KiddoPlan</div>
+    <div class="nav-logo">⭐ Kiddio Star</div>
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-child" onclick="switchMode('child')">👧 Anak</button>
       <button class="nav-tab" id="tab-parent" onclick="switchMode('parent')">👨‍👩‍👧 Ortu</button>
@@ -1312,15 +1312,18 @@ function showLoginScreen(){
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
 }
-function bootWithState(loaded){
+function bootWithState(loaded, skipSave){
   if(loaded){
     dailyRollover(); syncBadges();
     showAppScreen();
     renderAll(); renderNotes();
-    saveState();
+    if(!skipSave) saveState();
   } else {
     showOnboardingScreen();
   }
+}
+function overlayOpen(){
+  return !!(document.getElementById('ws-ol')||document.getElementById('add-modal')||document.getElementById('rwd-pop')||document.getElementById('bdg-pop'));
 }
 
 /* ===== FIREBASE AUTH + CLOUD ===== */
@@ -1329,6 +1332,10 @@ function initFirebase(){
   fbAuth=firebase.auth();
   fbDb=firebase.firestore();
   try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(function(){}); }catch(e){}
+  // tangani hasil login via redirect (HP) bila ada
+  fbAuth.getRedirectResult().catch(function(e){
+    const st=document.getElementById('login-status'); if(st&&e&&e.message) st.textContent='Login gagal: '+e.message;
+  });
   fbAuth.onAuthStateChanged(handleAuth);
 }
 function handleAuth(user){
@@ -1338,6 +1345,7 @@ function handleAuth(user){
     if(em) em.textContent=user.email||user.displayName||'Akun';
     loadFromCloud();
   } else {
+    if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
     showLoginScreen();
   }
 }
@@ -1345,6 +1353,15 @@ function loginGoogle(){
   const st=document.getElementById('login-status'); if(st) st.textContent='Membuka jendela Google...';
   const provider=new firebase.auth.GoogleAuthProvider();
   fbAuth.signInWithPopup(provider).catch(function(e){
+    const code=e&&e.code?e.code:'';
+    if(code==='auth/popup-closed-by-user' || code==='auth/cancelled-popup-request'){
+      if(st) st.textContent=''; return; // pengguna menutup popup
+    }
+    // popup diblokir / tak didukung (umum di HP) → coba metode redirect
+    if(code==='auth/popup-blocked' || code==='auth/operation-not-supported-in-this-environment'){
+      if(st) st.textContent='Mengalihkan ke halaman login Google...';
+      try{ fbAuth.signInWithRedirect(provider); return; }catch(_){}
+    }
     if(st) st.textContent='Login gagal: '+((e&&e.message)?e.message:e);
   });
 }
@@ -1352,18 +1369,22 @@ function logout(){
   if(!confirm('Keluar dari akun? Data tersimpan aman di cloud.')) return;
   if(fbAuth) fbAuth.signOut();
 }
+let cloudUnsub=null;
 function loadFromCloud(){
-  // tampilkan cache lokal dulu agar cepat, lalu segarkan dari cloud
+  // tampilkan cache lokal dulu agar cepat, lalu sinkron realtime dari cloud
   const loaded=loadLocalCache();
   if(loaded) bootWithState(true);
   if(!fbDb||!currentUser){ if(!loaded) showOnboardingScreen(); return; }
-  fbDb.collection('users').doc(currentUser.uid).get().then(function(doc){
+  if(cloudUnsub){ cloudUnsub(); cloudUnsub=null; }
+  cloudUnsub=fbDb.collection('users').doc(currentUser.uid).onSnapshot(function(doc){
+    if(doc.metadata.hasPendingWrites) return;     // perubahan dari perangkat ini sendiri
+    if(overlayOpen()) return;                      // jangan ganggu saat worksheet/modal terbuka
     if(doc.exists && applyState(doc.data())){
-      bootWithState(true);
-    } else if(!loaded){
+      bootWithState(true, true);                   // data dari cloud → jangan tulis balik
+    } else if(!doc.exists && !loaded){
       showOnboardingScreen();
     }
-  }).catch(function(){
+  }, function(){
     if(!loaded) showOnboardingScreen();
   });
 }
