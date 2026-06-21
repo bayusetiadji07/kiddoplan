@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kiddio Star</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5B8DEF">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kiddio Star">
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
@@ -205,6 +211,7 @@
       Masuk dengan Google
     </button>
     <div id="login-status" style="font-size:12px;color:var(--muted);font-weight:600;margin-top:14px;min-height:16px"></div>
+    <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;margin-top:12px;background:#EEF4FF;border:2px solid #C7DBFF;border-radius:14px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#1565C0;cursor:pointer">📲 Pasang ke layar HP</button>
   </div>
 </div>
 
@@ -1404,6 +1411,27 @@ function resetApp(){
     bootWithState(loadLocalCache()); // Firebase tak termuat → mode lokal saja
   }
 })();
+
+/* ===== PWA: service worker + tombol pasang ===== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault(); deferredPrompt=e;
+  const b=document.getElementById('install-btn'); if(b) b.style.display='flex';
+});
+function installApp(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(function(){
+    deferredPrompt=null;
+    const b=document.getElementById('install-btn'); if(b) b.style.display='none';
+  });
+}
+window.addEventListener('appinstalled', function(){
+  const b=document.getElementById('install-btn'); if(b) b.style.display='none';
+});
 </script>
 </body>
 </html>
