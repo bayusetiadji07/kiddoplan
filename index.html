@@ -276,10 +276,17 @@
       <div style="text-align:center;font-size:56px;margin-bottom:12px" id="ob4-av">🦁</div>
       <div class="ob-title" id="ob4-title">Hore, siap mulai!</div>
       <div class="ob-sub" id="ob4-sub">Jadwal spesial sudah disiapkan untukmu</div>
-      <div class="card" id="ob4-summary" style="margin-bottom:16px;text-align:left">
+      <div class="card" id="ob4-summary" style="margin-bottom:12px;text-align:left">
         <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">PROFIL KAMU</div>
         <div style="display:flex;flex-direction:column;gap:6px" id="ob4-rows"></div>
       </div>
+      <label class="card" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="ob-worship" checked onchange="toggleWorship(this)" style="width:18px;height:18px;accent-color:var(--sky);flex-shrink:0">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--dark)">🕌 Sertakan kegiatan ibadah</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600">Jika dimatikan, kegiatan pagi memakai nama netral (Bangun Pagi, Olahraga Pagi)</div>
+        </div>
+      </label>
       <div class="card" style="margin-bottom:12px;background:#EFFFFA;border:2px solid var(--mint)">
         <div style="font-size:13px;font-weight:700;color:#0F6E56;margin-bottom:6px">🎯 Kegiatan yang disiapkan untukmu:</div>
         <div id="ob4-acts" style="display:flex;flex-direction:column;gap:5px"></div>
@@ -320,6 +327,7 @@
         <div style="font-size:13px;font-weight:700;color:var(--dark)">🎯 Progress Hari Ini</div>
         <div class="prog-bar-bg"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-align:right" id="prog-txt">0 dari 0</div>
+        <div id="streak-chip" style="margin-top:8px;display:inline-block;background:#FFF3E0;color:#E65100;font-size:12px;font-weight:800;padding:4px 10px;border-radius:8px">🔥 0 hari beruntun</div>
       </div>
       <div class="child-profile-pill" id="profile-pill" style="display:none">
         <div class="av" id="pp-av">🦁</div>
@@ -382,8 +390,8 @@
       <div class="stat-grid">
         <div class="stat-box"><span class="stat-n" style="color:var(--sky)" id="ps-done">0/0</span><div class="stat-l">Tugas Selesai</div></div>
         <div class="stat-box"><span class="stat-n" style="color:#D4930A" id="ps-stars">0⭐</span><div class="stat-l">Total Bintang</div></div>
-        <div class="stat-box"><span class="stat-n" style="color:var(--mint)">85%</span><div class="stat-l">Konsistensi</div></div>
-        <div class="stat-box"><span class="stat-n" style="color:var(--coral)">4</span><div class="stat-l">Lencana</div></div>
+        <div class="stat-box"><span class="stat-n" style="color:var(--mint)" id="ps-consistency">0%</span><div class="stat-l">Konsistensi</div></div>
+        <div class="stat-box"><span class="stat-n" style="color:var(--coral)" id="ps-badges">0</span><div class="stat-l">Lencana</div></div>
       </div>
       <div class="card">
         <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">📈 7 Hari Terakhir</div>
@@ -437,8 +445,8 @@
             <button class="toggle on" onclick="this.classList.toggle('on')"></button>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
-            <span style="font-size:13px;font-weight:600;color:var(--dark)">🔒 Kunci Mode Ortu</span>
-            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            <span style="font-size:13px;font-weight:600;color:var(--dark)">🔒 PIN Mode Ortu <span id="pin-status" style="font-weight:700;color:var(--muted)">(nonaktif)</span></span>
+            <button onclick="setParentPin()" style="padding:6px 12px;border:2px solid #E8E4FF;border-radius:8px;background:#EEF4FF;color:#1565C0;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Atur PIN</button>
           </div>
         </div>
         <button onclick="resetApp()" style="width:100%;margin-top:12px;padding:11px;background:#FFF0F0;color:#C62828;border:2px solid #FFD4D4;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer">🔄 Reset & Mulai Ulang dari Awal</button>
@@ -449,13 +457,20 @@
 </div><!-- end main-app -->
 
 <script>
-let profile = {name:'',nick:'',age:'',avatar:'🦁',interests:[],ageGroup:''};
+let profile = {name:'',nick:'',age:'',avatar:'🦁',interests:[],ageGroup:'',includeWorship:true};
 let totalStars = 0;
 let obStep = 1;
 let selAvatar = '🦁';
 let selAgeVal = '';
 let selInterests = [];
 let savedNotes = [];
+
+/* status untuk fitur hari/streak/lencana/PIN */
+let history = {};        // { 'YYYY-MM-DD': {done, total} }
+let lastResetDate = '';
+let lifetimeDone = 0;    // total kegiatan diselesaikan sepanjang waktu
+let earnedBadges = [];   // id lencana yang sudah diraih
+let parentPin = '';      // '' = PIN nonaktif
 
 const interestTaskMap = {
   buku:[{name:'Membaca Buku',icon:'📚',bg:'#F0EEFF',pts:15,ws:true}],
@@ -468,24 +483,26 @@ const interestTaskMap = {
   alam:[{name:'Berkebun & Alam',icon:'🌿',bg:'#EFFFFA',pts:10,ws:false}],
 };
 
+/* Kegiatan dasar. worship:true → punya nama/ikon alternatif ibadah
+   yang dipakai bila profil mengaktifkan "Sertakan kegiatan ibadah". */
 const baseTasksByAge = {
   '5-7':[
-    {name:'Bangun & Sholat Subuh',icon:'🕌',bg:'#EEF4FF',pts:10,ws:false,time:'05.30'},
+    {name:'Bangun Pagi',worshipName:'Bangun & Sholat Subuh',icon:'🌅',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.30'},
     {name:'Sarapan Sehat',icon:'🥣',bg:'#FFF8E6',pts:5,ws:false,time:'07.00'},
     {name:'Istirahat Siang',icon:'😴',bg:'#F0EEFF',pts:5,ws:false,time:'13.00'},
   ],
   '8-10':[
-    {name:'Bangun & Sholat Subuh',icon:'🕌',bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
+    {name:'Bangun Pagi',worshipName:'Bangun & Sholat Subuh',icon:'🌅',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
     {name:'Sarapan & Siap Hari',icon:'🍳',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
     {name:'Belajar Mandiri',icon:'📝',bg:'#EFFFFA',pts:15,ws:true,time:'09.00'},
   ],
   '11-13':[
-    {name:'Sholat & Olahraga Pagi',icon:'🏃',bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
+    {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga Pagi',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'05.00'},
     {name:'Sarapan Bergizi',icon:'🥗',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
     {name:'Belajar Intensif',icon:'📖',bg:'#EFFFFA',pts:20,ws:true,time:'08.00'},
   ],
   '14+':[
-    {name:'Sholat & Olahraga',icon:'🏃',bg:'#EEF4FF',pts:10,ws:false,time:'04.45'},
+    {name:'Olahraga Pagi',worshipName:'Sholat & Olahraga',icon:'🏃',worshipIcon:'🕌',worship:true,bg:'#EEF4FF',pts:10,ws:false,time:'04.45'},
     {name:'Sarapan & Perencanaan',icon:'📋',bg:'#FFF8E6',pts:5,ws:false,time:'06.30'},
     {name:'Studi Mandiri',icon:'🎓',bg:'#EFFFFA',pts:25,ws:true,time:'08.00'},
   ]
@@ -494,13 +511,18 @@ const baseTasksByAge = {
 let tasks = [];
 let customTasks = null;
 
-const badges = [
-  {e:'🌅',n:'Pagi Semangat',earned:true},{e:'📖',n:'Kutu Buku',earned:true},
-  {e:'🎨',n:'Seniman Cilik',earned:true},{e:'⚽',n:'Aktif Bergerak',earned:false},
-  {e:'🌟',n:'Bintang Super',earned:false},{e:'👑',n:'Raja Jadwal',earned:false},
+/* Definisi lencana — diraih otomatis berdasar pencapaian nyata */
+const badgeDefs = [
+  {id:'first',  e:'🌟', n:'Langkah Pertama', cond:s=>s.lifetimeDone>=1},
+  {id:'five',   e:'✋', n:'5 Kegiatan',       cond:s=>s.lifetimeDone>=5},
+  {id:'twenty', e:'💪', n:'20 Kegiatan',      cond:s=>s.lifetimeDone>=20},
+  {id:'stars50',e:'⭐', n:'50 Bintang',       cond:s=>s.totalStars>=50},
+  {id:'stars100',e:'👑',n:'100 Bintang',      cond:s=>s.totalStars>=100},
+  {id:'streak3',e:'🔥', n:'3 Hari Beruntun',  cond:s=>s.streak>=3},
+  {id:'streak7',e:'🏆', n:'Seminggu Penuh',   cond:s=>s.streak>=7},
+  {id:'perfect',e:'💯', n:'Hari Sempurna',    cond:s=>s.perfectDay},
+  {id:'allint', e:'🎨', n:'Serba Bisa',       cond:s=>s.interests>=4},
 ];
-
-const weekD=[{d:'Sen',p:100},{d:'Sel',p:86},{d:'Rab',p:100},{d:'Kam',p:57},{d:'Jum',p:71},{d:'Sab',p:100},{d:'Min',p:43}];
 
 function obNext(step){
   if(step===1){
@@ -558,6 +580,11 @@ function toggleInt(el,key){
   else selInterests.push(key);
 }
 
+function toggleWorship(cb){
+  profile.includeWorship=cb.checked;
+  buildOb4();
+}
+
 function buildOb4(){
   document.getElementById('ob4-av').textContent=profile.avatar;
   document.getElementById('ob4-title').textContent='Hore, '+profile.nick+'! 🎉';
@@ -579,7 +606,13 @@ function buildOb4(){
 
 function generateTasks(){
   const age=profile.ageGroup||'8-10';
-  const base=(baseTasksByAge[age]||baseTasksByAge['8-10']).map((t,i)=>({...t,id:i+1,done:i<1,time:t.time+' - '+(String(parseInt(t.time)+1).padStart(2,'0'))+'.00'}));
+  const worship=profile.includeWorship!==false;
+  const base=(baseTasksByAge[age]||baseTasksByAge['8-10']).map((t,i)=>({
+    name:(t.worship&&worship&&t.worshipName)?t.worshipName:t.name,
+    icon:(t.worship&&worship&&t.worshipIcon)?t.worshipIcon:t.icon,
+    bg:t.bg,pts:t.pts,ws:t.ws,id:i+1,done:false,
+    time:t.time+' - '+(String(parseInt(t.time)+1).padStart(2,'0'))+'.00'
+  }));
   let intTasks=[];
   profile.interests.forEach((key,i)=>{
     if(interestTaskMap[key]){
@@ -593,6 +626,7 @@ function generateTasks(){
 function finishOnboarding(){
   tasks=generateTasks();
   customTasks=[...tasks];
+  lastResetDate=todayKey();
   document.getElementById('onboarding').classList.add('hidden');
   document.getElementById('main-app').classList.remove('hidden');
   renderAll();
@@ -625,6 +659,7 @@ function renderAll(){
   updateProgress();
   renderParentDash();
   renderCustomList();
+  renderPinStatus();
 }
 
 function renderTasks(){
@@ -657,10 +692,16 @@ function renderSchedGrid(){
 }
 
 function renderBadges(){
-  document.getElementById('badge-list').innerHTML=badges.filter(b=>b.earned).map(b=>`
-    <div class="bdg earned"><span>${b.e}</span><p>${b.n}</p></div>`).join('');
-  document.getElementById('all-badges').innerHTML=badges.map(b=>`
-    <div class="bdg ${b.earned?'earned':'locked'}"><span>${b.e}</span><p>${b.n}</p></div>`).join('');
+  const earned=badgeDefs.filter(b=>earnedBadges.includes(b.id));
+  const bl=document.getElementById('badge-list');
+  if(bl) bl.innerHTML = earned.length
+    ? earned.map(b=>`<div class="bdg earned"><span>${b.e}</span><p>${b.n}</p></div>`).join('')
+    : '<div style="grid-column:1/-1;font-size:12px;color:var(--muted);font-weight:600;text-align:center;padding:10px">Belum ada lencana. Selesaikan kegiatan untuk meraihnya! ✨</div>';
+  const ab=document.getElementById('all-badges');
+  if(ab) ab.innerHTML=badgeDefs.map(b=>{
+    const ok=earnedBadges.includes(b.id);
+    return `<div class="bdg ${ok?'earned':'locked'}"><span>${b.e}</span><p>${b.n}</p></div>`;
+  }).join('');
 }
 
 function renderLevels(){
@@ -693,6 +734,9 @@ function updateProgress(){
   const psStars=document.getElementById('ps-stars');
   if(psDone) psDone.textContent=done+'/'+t.length;
   if(psStars) psStars.textContent=totalStars+'⭐';
+  recordToday();
+  const sc=document.getElementById('streak-chip');
+  if(sc){const st=computeStreak(); sc.textContent='🔥 '+st+(st===1?' hari beruntun':' hari beruntun');}
 }
 
 function handleTask(id){
@@ -732,9 +776,10 @@ function submitWS(id){
 }
 
 function completeTask(task){
-  task.done=true; totalStars+=task.pts;
+  task.done=true; totalStars+=task.pts; lifetimeDone++;
   renderTasks(); renderSchedGrid(); updateProgress();
   showReward(task);
+  checkBadges();
   saveState();
 }
 
@@ -761,11 +806,25 @@ function closeReward(){const p=document.getElementById('rwd-pop');if(p)p.remove(
 
 function renderParentDash(){
   const bars=document.getElementById('week-bars');
-  if(bars) bars.innerHTML=weekD.map(d=>`
-    <div class="bar-w">
-      <div class="bar-b" style="height:${Math.max(4,d.p*.65)}px;background:${d.p===100?'var(--mint)':'var(--sky)'}"></div>
-      <div class="bar-d">${d.d}</div>
-    </div>`).join('');
+  if(bars){
+    const dayShort=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+    const d=new Date(); d.setDate(d.getDate()-6);
+    let days=[];
+    for(let i=0;i<7;i++){
+      const k=dateKey(d); const r=history[k];
+      const p=(r&&r.total)?Math.round(r.done/r.total*100):0;
+      days.push({d:dayShort[d.getDay()],p});
+      d.setDate(d.getDate()+1);
+    }
+    bars.innerHTML=days.map(x=>`
+      <div class="bar-w">
+        <div class="bar-b" style="height:${Math.max(4,x.p*.65)}px;background:${x.p>=100?'var(--mint)':(x.p>0?'var(--sky)':'#E5E7EB')}"></div>
+        <div class="bar-d">${x.d}</div>
+      </div>`).join('');
+  }
+
+  const cons=document.getElementById('ps-consistency'); if(cons) cons.textContent=consistency()+'%';
+  const pb=document.getElementById('ps-badges'); if(pb) pb.textContent=earnedBadges.length;
 
   const t=customTasks||tasks;
   const log=document.getElementById('log-list');
@@ -914,6 +973,11 @@ function deleteTask(id){
 }
 
 function switchMode(mode){
+  if(mode==='parent' && parentPin){
+    const entry=prompt('🔒 Masukkan PIN Mode Ortu:');
+    if(entry===null) return;
+    if(entry!==parentPin){ alert('PIN salah! ❌'); return; }
+  }
   document.getElementById('child-mode').classList.toggle('hidden',mode==='parent');
   document.getElementById('parent-mode').classList.toggle('hidden',mode==='child');
   document.getElementById('tab-child').classList.toggle('active',mode==='child');
@@ -952,6 +1016,96 @@ function renderNotes(){
     </div>`).join('');
 }
 
+/* ===== HARI, STREAK, RIWAYAT ===== */
+function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayKey(){return dateKey(new Date());}
+
+/* Reset status kegiatan saat masuk hari baru (riwayat hari lalu tetap tersimpan) */
+function dailyRollover(){
+  const today=todayKey();
+  if(lastResetDate===today) return;
+  if(lastResetDate){ (customTasks||tasks).forEach(x=>x.done=false); }
+  lastResetDate=today;
+}
+
+/* Simpan progres hari ini ke riwayat */
+function recordToday(){
+  const t=customTasks||tasks;
+  history[todayKey()]={done:t.filter(x=>x.done).length,total:t.length};
+}
+
+/* Streak = jumlah hari berturut-turut dengan minimal 1 kegiatan selesai */
+function computeStreak(){
+  let s=0; const d=new Date();
+  if(!(history[todayKey()]&&history[todayKey()].done>0)) d.setDate(d.getDate()-1);
+  for(;;){ const r=history[dateKey(d)]; if(r&&r.done>0){s++; d.setDate(d.getDate()-1);} else break; }
+  return s;
+}
+
+/* Konsistensi = rata-rata persentase penyelesaian 7 hari terakhir yang tercatat */
+function consistency(){
+  let sum=0,cnt=0; const d=new Date();
+  for(let i=0;i<7;i++){ const r=history[dateKey(d)]; if(r&&r.total){ sum+=r.done/r.total; cnt++; } d.setDate(d.getDate()-1); }
+  return cnt?Math.round(sum/cnt*100):0;
+}
+
+/* ===== LENCANA OTOMATIS ===== */
+function getStats(){
+  const t=customTasks||tasks;
+  const doneToday=t.filter(x=>x.done).length;
+  return {
+    lifetimeDone, totalStars,
+    streak:computeStreak(),
+    perfectDay: t.length>0 && doneToday===t.length,
+    interests: (profile.interests||[]).length
+  };
+}
+function syncBadges(){ // tandai lencana yang sudah layak TANPA popup (dipakai saat load)
+  const s=getStats();
+  badgeDefs.forEach(b=>{ if(b.cond(s)&&!earnedBadges.includes(b.id)) earnedBadges.push(b.id); });
+}
+function checkBadges(){ // cek lencana baru DAN tampilkan popup
+  const s=getStats();
+  const newly=[];
+  badgeDefs.forEach(b=>{ if(b.cond(s)&&!earnedBadges.includes(b.id)){ earnedBadges.push(b.id); newly.push(b); } });
+  if(newly.length){ renderBadges(); renderParentDash(); showBadgePopup(newly[0]); }
+}
+function showBadgePopup(b){
+  const app=document.getElementById('main-app');
+  const p=document.createElement('div');
+  p.className='rwd-overlay'; p.id='bdg-pop';
+  p.style.zIndex='320';
+  p.innerHTML=`<div class="rwd-box">
+    <div class="confrow"><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div><div class="cf"></div></div>
+    <span class="rwd-em">${b.e}</span>
+    <h3>Lencana Baru!</h3>
+    <p>Kamu meraih<br><strong>${b.n}</strong></p>
+    <button class="rwd-ok" onclick="(function(){var e=document.getElementById('bdg-pop');if(e)e.remove();})()">Keren! 🎉</button>
+  </div>`;
+  app.appendChild(p);
+}
+
+/* ===== PIN MODE ORTU ===== */
+function renderPinStatus(){
+  const el=document.getElementById('pin-status');
+  if(el) el.textContent=parentPin?'(aktif)':'(nonaktif)';
+}
+function setParentPin(){
+  if(parentPin){
+    const cur=prompt('Masukkan PIN saat ini:');
+    if(cur===null) return;
+    if(cur!==parentPin){ alert('PIN salah! ❌'); return; }
+  }
+  const np=prompt('Buat PIN baru (4 angka). Kosongkan lalu tekan OK untuk menghapus PIN:');
+  if(np===null) return;
+  const clean=np.trim();
+  if(clean && !/^\d{4}$/.test(clean)){ alert('PIN harus 4 angka.'); return; }
+  parentPin=clean;
+  saveState();
+  renderPinStatus();
+  alert(clean?'PIN tersimpan! ✅':'PIN dihapus.');
+}
+
 /* ===== PENYIMPANAN DATA (localStorage) ===== */
 const STORAGE_KEY='kiddoplan_v2';
 function saveState(){
@@ -961,6 +1115,11 @@ function saveState(){
       totalStars,
       tasks:customTasks||tasks,
       notesList,
+      history,
+      lastResetDate,
+      lifetimeDone,
+      earnedBadges,
+      parentPin,
       onboarded:!!profile.name
     }));
   }catch(e){/* penyimpanan tidak tersedia */}
@@ -972,10 +1131,16 @@ function loadState(){
     const s=JSON.parse(raw);
     if(!s||!s.onboarded||!s.profile||!s.profile.name) return false;
     profile=s.profile;
+    if(profile.includeWorship===undefined) profile.includeWorship=true;
     totalStars=s.totalStars||0;
     tasks=Array.isArray(s.tasks)?s.tasks:[];
     customTasks=[...tasks];
     notesList=Array.isArray(s.notesList)?s.notesList:[];
+    history=(s.history&&typeof s.history==='object')?s.history:{};
+    lastResetDate=s.lastResetDate||'';
+    lifetimeDone=s.lifetimeDone||0;
+    earnedBadges=Array.isArray(s.earnedBadges)?s.earnedBadges:[];
+    parentPin=s.parentPin||'';
     return true;
   }catch(e){return false;}
 }
@@ -988,10 +1153,13 @@ function resetApp(){
 /* Muat data tersimpan saat aplikasi dibuka */
 (function init(){
   if(loadState()){
+    dailyRollover();
+    syncBadges();
     document.getElementById('onboarding').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     renderAll();
     renderNotes();
+    saveState();
   }
 })();
 </script>
