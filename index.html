@@ -267,8 +267,19 @@ button:active:not(:disabled){transform:scale(.95)}
 /* glassmorphism pada overlay + modal mengambang */
 .overlay,.rwd-overlay,.modal-overlay{background:rgba(45,45,94,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .ws-panel,.modal-box,.rwd-box{box-shadow:var(--shadow-lg)}
+/* ===== HILANGKAN LAYAR PUTIH (isi penuh tinggi layar) ===== */
+html,body{margin:0;padding:0;background:var(--lav)}
+html{min-height:100%}
+#app{min-height:100vh;min-height:100dvh}
+.ob-wrap{min-height:100vh;min-height:100dvh}
+#main-app{min-height:100vh;min-height:100dvh}
+/* layar login benar-benar center di tengah layar */
+#login-screen{justify-content:center}
 /* bingkai aplikasi pada layar lebar */
-@media(min-width:520px){ #app{box-shadow:var(--shadow-lg);border-radius:24px;overflow:hidden;margin-top:12px;margin-bottom:12px;min-height:96vh} }
+@media(min-width:520px){
+  body{padding:12px 0}
+  #app{box-shadow:var(--shadow-lg);border-radius:24px;overflow:hidden;min-height:calc(100dvh - 24px)}
+}
 </style>
 
 <div id="app">
