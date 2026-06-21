@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F0EEFF",
-  "theme_color": "#FFFFFF",
+  "theme_color": "#5B8DEF",
   "icons": [
     { "src": "logo.png", "sizes": "1000x1000", "type": "image/png", "purpose": "any" },
     { "src": "logo.png", "sizes": "1000x1000", "type": "image/png", "purpose": "maskable" }
