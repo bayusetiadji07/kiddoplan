@@ -401,6 +401,10 @@
         <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">📋 Log Hari Ini</div>
         <div id="log-list"></div>
       </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">💭 Refleksi Worksheet Anak</div>
+        <div id="reflection-list"></div>
+      </div>
       <div class="card" id="child-info-card">
         <div style="font-size:14px;font-weight:800;color:var(--dark);margin-bottom:10px">👤 Profil Anak</div>
         <div id="child-info-rows"></div>
@@ -471,6 +475,7 @@ let lastResetDate = '';
 let lifetimeDone = 0;    // total kegiatan diselesaikan sepanjang waktu
 let earnedBadges = [];   // id lencana yang sudah diraih
 let parentPin = '';      // '' = PIN nonaktif
+let reflections = [];    // jawaban worksheet anak (untuk ortu)
 
 const interestTaskMap = {
   buku:[{name:'Membaca Buku',icon:'📚',bg:'#F0EEFF',pts:15,ws:true}],
@@ -825,9 +830,71 @@ function showWS(task){
 function closeWS(){const o=document.getElementById('ws-ol');if(o)o.remove();}
 
 function submitWS(id){
-  closeWS();
   const t=(customTasks||tasks).find(x=>x.id===id);
-  if(t&&!t.done) completeTask(t);
+  const answers=t?collectWSAnswers(t):null;
+  closeWS();
+  if(t&&!t.done){
+    if(answers) saveReflection(t,answers);
+    completeTask(t);
+  }
+}
+
+/* Baca jawaban dari panel worksheet yang sedang terbuka */
+function collectWSAnswers(task){
+  const panel=document.querySelector('#ws-ol .ws-panel');
+  if(!panel) return null;
+  const ws=worksheets[task.topic]||worksheets._default;
+  const blocks=panel.querySelectorAll('.ws-q');
+  const out=[];
+  ws.questions.forEach((q,i)=>{
+    const block=blocks[i]; if(!block) return;
+    let ans='';
+    if(q.type==='choice'){
+      const sel=block.querySelector('input[type=radio]:checked');
+      ans=sel?sel.parentElement.querySelector('label').textContent.trim():'';
+    } else {
+      const ta=block.querySelector('textarea');
+      ans=ta?ta.value.trim():'';
+    }
+    out.push({q:q.q,a:ans});
+  });
+  return out;
+}
+
+/* Simpan refleksi (hanya bila ada minimal 1 jawaban terisi) */
+function saveReflection(task,answers){
+  if(!answers.some(x=>x.a)) return;
+  reflections.unshift({
+    task:task.name, icon:task.icon, topic:task.topic||'',
+    date:new Date().toLocaleDateString('id-ID'),
+    answers:answers
+  });
+  if(reflections.length>50) reflections=reflections.slice(0,50);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderReflections(){
+  const c=document.getElementById('reflection-list');
+  if(!c) return;
+  if(!reflections.length){
+    c.innerHTML='<div style="font-size:12px;color:var(--muted);font-weight:600">Belum ada refleksi. Akan muncul saat anak menyelesaikan worksheet. ✨</div>';
+    return;
+  }
+  c.innerHTML=reflections.slice(0,10).map(r=>`
+    <div style="border-left:3px solid var(--sky);background:#F8F7FF;border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:800;color:var(--dark)">${escapeHtml(r.icon+' '+r.task)}</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700">${escapeHtml(r.date)}</div>
+      </div>
+      ${r.answers.filter(a=>a.a).map(a=>`
+        <div style="margin-bottom:5px">
+          <div style="font-size:11px;color:var(--muted);font-weight:700">${escapeHtml(a.q)}</div>
+          <div style="font-size:12px;color:var(--dark);font-weight:600">${escapeHtml(a.a)}</div>
+        </div>`).join('')}
+    </div>`).join('');
 }
 
 function completeTask(task){
@@ -880,6 +947,7 @@ function renderParentDash(){
 
   const cons=document.getElementById('ps-consistency'); if(cons) cons.textContent=consistency()+'%';
   const pb=document.getElementById('ps-badges'); if(pb) pb.textContent=earnedBadges.length;
+  renderReflections();
 
   const t=customTasks||tasks;
   const log=document.getElementById('log-list');
@@ -1175,6 +1243,7 @@ function saveState(){
       lifetimeDone,
       earnedBadges,
       parentPin,
+      reflections,
       onboarded:!!profile.name
     }));
   }catch(e){/* penyimpanan tidak tersedia */}
@@ -1196,6 +1265,7 @@ function loadState(){
     lifetimeDone=s.lifetimeDone||0;
     earnedBadges=Array.isArray(s.earnedBadges)?s.earnedBadges:[];
     parentPin=s.parentPin||'';
+    reflections=Array.isArray(s.reflections)?s.reflections:[];
     return true;
   }catch(e){return false;}
 }
