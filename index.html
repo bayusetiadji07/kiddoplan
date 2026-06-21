@@ -280,6 +280,13 @@ html{min-height:100%}
   body{padding:12px 0}
   #app{box-shadow:var(--shadow-lg);border-radius:24px;overflow:hidden;min-height:calc(100dvh - 24px)}
 }
+/* Worksheet tampil di TENGAH jendela (bukan menempel di bawah) */
+.overlay{align-items:center;justify-content:center;padding:16px}
+.ws-panel{border-radius:var(--cr);max-width:440px;max-height:84vh}
+/* Konfeti ulang tahun */
+.confetti-layer{position:absolute;inset:0;pointer-events:none;z-index:340;overflow:hidden}
+.confetti-piece{position:absolute;top:-18px;border-radius:2px;opacity:0;will-change:transform}
+@keyframes confFall{0%{opacity:1;transform:translate(0,-20px) rotate(0)}100%{opacity:.85;transform:translate(var(--drift,0),112vh) rotate(900deg)}}
 </style>
 
 <div id="app">
@@ -1388,8 +1395,8 @@ function sfx(name){
   if(!soundOn) return;
   const ctx=ensureAudio(); if(!ctx) return;
   if(name==='complete'){ [523,659,784].forEach((f,i)=>beep(f,i*0.08,0.18,'triangle',0.2)); }
-  else if(name==='reward'){ [523,659,784,1047].forEach((f,i)=>beep(f,i*0.1,0.22,'triangle',0.22)); }
-  else if(name==='badge'){ [659,784,988,1319].forEach((f,i)=>beep(f,i*0.12,0.28,'triangle',0.2)); }
+  else if(name==='reward'){ [1568,2093,2637,3136].forEach((f,i)=>beep(f,i*0.05,0.42,'triangle',0.16)); beep(3136,0.16,0.8,'sine',0.12); }
+  else if(name==='badge'){ [1568,2093,2637,3136,4186].forEach((f,i)=>beep(f,i*0.06,0.5,'triangle',0.16)); beep(3136,0.2,0.9,'sine',0.12); beep(4186,0.28,1.0,'sine',0.08); }
   else if(name==='redeem'){ beep(988,0,0.12,'square',0.18); beep(1319,0.12,0.22,'square',0.18); }
   else if(name==='reminder'){ beep(880,0,0.18,'sine',0.22); beep(1175,0.2,0.25,'sine',0.22); }
   else if(name==='tap'){ beep(660,0,0.05,'sine',0.10); }
@@ -1721,6 +1728,28 @@ function showBadgePopup(b){
     <button class="rwd-ok" onclick="(function(){var e=document.getElementById('bdg-pop');if(e)e.remove();})()">Keren! 🎉</button>
   </div>`;
   app.appendChild(p);
+  launchConfetti();
+}
+/* Hamburan kertas/konfeti seperti ulang tahun */
+function launchConfetti(){
+  const host=document.getElementById('app')||document.body;
+  const layer=document.createElement('div');
+  layer.className='confetti-layer';
+  const colors=['#FF6B6B','#FFD166','#06D6A0','#5B8DEF','#7B5EA7','#FF8C42','#FF7FB6'];
+  for(let i=0;i<90;i++){
+    const p=document.createElement('div');
+    const c=colors[i%colors.length];
+    const left=Math.random()*100;
+    const size=6+Math.random()*8;
+    const dur=2.2+Math.random()*1.8;
+    const delay=Math.random()*0.6;
+    const drift=(Math.random()*2-1)*140;
+    p.className='confetti-piece';
+    p.style.cssText='left:'+left+'%;width:'+size+'px;height:'+(size*1.4)+'px;background:'+c+';--drift:'+drift+'px;animation:confFall '+dur+'s '+delay+'s ease-in forwards';
+    layer.appendChild(p);
+  }
+  host.appendChild(layer);
+  setTimeout(function(){ if(layer.parentNode) layer.remove(); }, 5000);
 }
 
 /* ===== PIN MODE ORTU ===== */
