@@ -229,6 +229,46 @@ button:active:not(:disabled){transform:scale(.95)}
 @keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 .overlay,.rwd-overlay,.modal-overlay{animation:fadeIn .25s ease both}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ===== DESIGN SYSTEM — depth, transisi, micro-interactions ===== */
+:root{
+  --ease:cubic-bezier(.4,0,.2,1);
+  --shadow-sm:0 1px 2px rgba(45,45,94,.05), 0 2px 6px rgba(45,45,94,.05);
+  --shadow-md:0 6px 18px rgba(45,45,94,.10);
+  --shadow-lg:0 16px 40px rgba(45,45,94,.18);
+  --ring:0 0 0 4px rgba(91,141,239,.18);
+}
+/* transisi konsisten 250ms ease-in-out */
+.card,.prog-card,.task-card,.int-card,.av-btn,.age-btn,.em-btn,.bdg,.sched-item,.stat-box,
+.nav-tab,.bnav,.cs-tab,.toggle,button,.ob-input,.m-input,.m-select,.note-input,.ws-inp,#penalty-input{
+  transition:all .25s var(--ease);
+}
+/* kedalaman pada kartu */
+.card,.prog-card{box-shadow:var(--shadow-sm)}
+.hero-card{box-shadow:var(--shadow-md)}
+.task-card,.sched-item,.stat-box,.bdg,.int-card,.av-btn,.age-btn{box-shadow:var(--shadow-sm)}
+.greeting-box,.child-profile-pill{box-shadow:var(--shadow-sm)}
+/* micro-interactions: hover angkat + bayangan */
+.task-card:hover,.int-card:hover,.sched-item:hover,.bdg.earned:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.int-card.sel{box-shadow:var(--ring), var(--shadow-md)}
+.av-btn.sel,.age-btn.sel,.em-btn.sel{box-shadow:var(--ring)}
+/* tombol: depth + tekan */
+.ob-next,.ws-submit,.m-save,.save-btn,.rwd-ok,.add-sched-btn,.bdg{will-change:transform}
+.ob-next{box-shadow:0 6px 16px rgba(91,141,239,.35)}
+.ob-next:hover{box-shadow:0 10px 24px rgba(91,141,239,.45);transform:translateY(-1px)}
+.ws-submit,.m-save{box-shadow:0 6px 16px rgba(91,141,239,.3)}
+.save-btn{box-shadow:0 6px 16px rgba(123,94,167,.3)}
+.rwd-ok{box-shadow:0 6px 16px rgba(6,214,160,.3)}
+/* input: focus ring lembut */
+.ob-input:focus,.m-input:focus,.m-select:focus,.note-input:focus,.ws-inp:focus,#penalty-input:focus{box-shadow:var(--ring)}
+/* nav diberi kedalaman tipis */
+.top-nav{box-shadow:0 2px 10px rgba(45,45,94,.05)}
+.bot-nav{box-shadow:0 -2px 10px rgba(45,45,94,.05)}
+/* glassmorphism pada overlay + modal mengambang */
+.overlay,.rwd-overlay,.modal-overlay{background:rgba(45,45,94,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.ws-panel,.modal-box,.rwd-box{box-shadow:var(--shadow-lg)}
+/* bingkai aplikasi pada layar lebar */
+@media(min-width:520px){ #app{box-shadow:var(--shadow-lg);border-radius:24px;overflow:hidden;margin-top:12px;margin-bottom:12px;min-height:96vh} }
 </style>
 
 <div id="app">
